@@ -109,7 +109,7 @@ func (isr *issuer) OfferCallback(
 		Type:     protocol.CredentialIssuanceResponseMessageType,
 		ThreadID: fetchMessage.ThreadID,
 		Body:     protocol.IssuanceMessageBody{Credential: *cred},
-		From:     fetchMessage.From,
-		To:       fetchMessage.To,
+		From:     fetchMessage.To,
+		To:       fetchMessage.From,
 	}, nil
 }
