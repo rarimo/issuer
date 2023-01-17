@@ -1,0 +1,8 @@
+name: claim-id
+in: path
+description: The claim unique identifier
+required: true
+example: KYCCredential
+schema:
+  type: string
+  format: string

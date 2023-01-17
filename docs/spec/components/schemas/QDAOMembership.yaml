@@ -1,0 +1,10 @@
+type: object
+description: The data that proof Q DAO Membership
+required:
+  - is_member
+properties:
+  is_member:
+    type: boolean
+    format: bool
+    description: Flag that contains information about membership
+    example: true

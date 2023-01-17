@@ -1,0 +1,32 @@
+allOf:
+  - $ref: '#/components/schemas/IssueClaimKey'
+  - type: object
+    x-go-is-request: true
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - schema_type
+          - schema_data
+          - expiration
+        properties:
+          schema_type:
+            type: string
+            format: string
+            description: The schema type
+            example: KYCFullNameCredentials
+          schema_data:
+            oneOf:
+              - $ref: '#/components/schemas/KYCFullNameCredentialsSchema'
+              - $ref: '#/components/schemas/QDAOMembership'
+            format: json.RawMessage
+            example:
+              first_name: David
+              second_name: Alabama
+          expiration:
+            type: string
+            format: string
+            description: The claim expiration date in RFC3339 format
+            example: '2019-10-12T07:20:50.52Z'

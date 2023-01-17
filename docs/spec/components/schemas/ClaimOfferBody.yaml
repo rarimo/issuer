@@ -1,0 +1,14 @@
+type: object
+required:
+  - url
+  - credentials
+properties:
+  url:
+    type: string
+    format: string
+    description: The callback url
+    example: 'https://qidissuer.com/integrations/qid-issuer/v1/claims/issue'
+  credentials:
+    type: array
+    items:
+      $ref: '#/components/schemas/ClaimOfferBodyCredentials'

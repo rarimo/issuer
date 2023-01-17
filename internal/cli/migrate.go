@@ -3,8 +3,8 @@ package cli
 import (
 	migrate "github.com/rubenv/sql-migrate"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"gitlab.com/q-dev/q-id/qid-issuer/internal/assets"
-	"gitlab.com/q-dev/q-id/qid-issuer/internal/config"
+	"gitlab.com/q-dev/q-id/issuer/internal/assets"
+	"gitlab.com/q-dev/q-id/issuer/internal/config"
 )
 
 var migrations = &migrate.EmbedFileSystemMigrationSource{

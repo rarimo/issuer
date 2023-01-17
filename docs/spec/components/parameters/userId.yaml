@@ -1,0 +1,8 @@
+name: user-id
+in: path
+description: The user's identity identifier
+required: true
+example: 118Rhos6r43nuSimdH95Djjfw4BEpHeP5DNm3a696t
+schema:
+  type: string
+  format: string

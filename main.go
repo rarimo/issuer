@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"gitlab.com/q-dev/q-id/qid-issuer/internal/cli"
+	"gitlab.com/q-dev/q-id/issuer/internal/cli"
 )
 
 func main() {

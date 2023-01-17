@@ -1,0 +1,37 @@
+type: object
+required:
+  - id
+  - type
+  - body
+  - from
+  - to
+properties:
+  id:
+    type: string
+    format: string
+    description: The callback id
+    example: 19ada00f-dec3-4ddb-b1d9-06f70116fe81
+  type:
+    type: string
+    enum:
+      - 'https://iden3-communication.io/credentials/1.0/fetch-request'
+    format: string
+    description: The message type
+  typ:
+    type: string
+    enum:
+      - application/iden3comm-plain-json
+    format: string
+    description: The message format
+  from:
+    type: string
+    format: string
+    description: The message receiver
+    example: 1143G2vzwjxxKaU8t2ejWpiteLmBq2GmUsH2KdpGeh
+  to:
+    type: string
+    format: string
+    description: The message receiver
+    example: 115BLMQcGMvRLSPc6JZihSktxgLMu4Jf5Gw7XkPGiD
+  body:
+    $ref: '#/components/schemas/OfferCallbackBody'
