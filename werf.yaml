@@ -4,10 +4,10 @@ project: 'backend'
 image: builder
 from: golang:1.16.2-stretch
 docker:
-  WORKDIR: /go/src/gitlab.com/q-dev/q-id/qid-issuer
+  WORKDIR: /go/src/gitlab.com/q-dev/q-id/issuer
 git:
 - add: /
-  to: /go/src/gitlab.com/q-dev/q-id/qid-issuer
+  to: /go/src/gitlab.com/q-dev/q-id/issuer
   stageDependencies:
     setup:
     - "**/*"
@@ -16,7 +16,7 @@ shell:
   - export CGO_ENABLED=0
   - export GO111MODULE=off
   - export GOOS=linux
-  - go build  -o /usr/local/bin/qid-issuer  /go/src/gitlab.com/q-dev/q-id/qid-issuer
+  - go build  -o /usr/local/bin/qid-issuer  /go/src/gitlab.com/q-dev/q-id/issuer
 
 ---
 image: service

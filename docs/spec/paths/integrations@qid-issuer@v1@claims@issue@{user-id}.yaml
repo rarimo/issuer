@@ -1,0 +1,35 @@
+post:
+  tags:
+    - Claims
+  summary: It issues the claim by the specified schema type
+  operationId: issueClaim
+  parameters:
+    - $ref: '#/components/parameters/userId'
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - data
+          properties:
+            data:
+              $ref: '#/components/schemas/IssueClaim'
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/IssueClaimKey'
+    '400':
+      description: Bad request
+    '409':
+      description: Conflict. Claim already exist
+    '500':
+      description: Internal error

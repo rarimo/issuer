@@ -7,7 +7,7 @@
 ## Install
 
   ```
-  git clone gitlab.com/q-dev/q-id/qid-issuer
+  git clone gitlab.com/q-dev/q-id/issuer
   cd qid-issuer
   go build main.go
   export KV_VIPER_FILE=./config.yaml
@@ -39,8 +39,8 @@ Make sure that docker installed.
 use `docker run ` with `-p 8080:80` to expose port 80 to 8080
 
   ```
-  docker build -t gitlab.com/q-dev/q-id/qid-issuer .
-  docker run -e KV_VIPER_FILE=/config.yaml gitlab.com/q-dev/q-id/qid-issuer
+  docker build -t gitlab.com/q-dev/q-id/issuer .
+  docker run -e KV_VIPER_FILE=/config.yaml gitlab.com/q-dev/q-id/issuer
   ```
 
 ## Running from Source

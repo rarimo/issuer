@@ -3,8 +3,8 @@
 GENERATOR_IMAGE=registry.gitlab.com/tokend/openapi-go-generator:69f004b58152c83f007b593cc13e94b81d7200da
 
 
-GENERATED="${GOPATH}/src/gitlab.com/q-dev/q-id/qid-issuer/resources"
-OPENAPI_DIR="${GOPATH}/src/gitlab.com/q-dev/q-id/qid-issuer/docs/web_deploy"
+GENERATED="${GOPATH}/src/gitlab.com/q-dev/q-id/issuer/resources"
+OPENAPI_DIR="${GOPATH}/src/gitlab.com/q-dev/q-id/issuer/docs/web_deploy"
 PACKAGE_NAME=resources
 
 function printHelp {

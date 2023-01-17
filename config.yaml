@@ -3,7 +3,31 @@ log:
   disable_sentry: true
 
 db:
-  url: db_url
+  url: ...
 
 listener:
   addr: :8000
+
+ethereum:
+  rpc_url: "https://..."
+  state_storage_contract: ...
+  private_key: "..."
+
+issuer:
+  domain: "https://..."
+  ipfs_node_url: "https://..."
+
+state_publisher:
+  retry_period: 5s
+
+identity:
+  tree_depth: 64
+  circuits_path: ./circuits
+  babyjubjub_private_key: #example "0xe303de93d018b2fb052f2ecb9214a01a432c0b743501464632964c6ae774f893"
+
+cop:
+  disabled: true
+  endpoint: "http://..."
+  upstream: "http://..."
+  service_name: issuer
+  service_port: 80

@@ -1,5 +1,5 @@
 .vscode/
 .idea/
-config.*.yaml
+*.dev.*
 docs/node_modules
 docs/web_deploy

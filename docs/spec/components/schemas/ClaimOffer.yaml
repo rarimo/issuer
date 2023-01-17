@@ -1,0 +1,50 @@
+allOf:
+  - $ref: '#/components/schemas/ClaimOfferKey'
+  - type: object
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - id
+          - typ
+          - type
+          - thid
+          - body
+          - from
+          - to
+        properties:
+          id:
+            type: string
+            format: string
+            description: The uniquer offer identifier
+            example: 205fb86d-d555-42d3-866d-699b842a00a1
+          typ:
+            type: string
+            format: string
+            enum:
+              - application/iden3comm-plain-json
+            description: The Iden3 message media type
+          type:
+            type: string
+            format: string
+            enum:
+              - 'https://iden3-communication.io/credentials/1.0/offer'
+            description: The Iden3 protocol message type
+          thid:
+            type: string
+            format: string
+            example: 205fb86d-d555-42d3-866d-699b842a00a1
+          body:
+            $ref: '#/components/schemas/ClaimOfferBody'
+          from:
+            type: string
+            format: string
+            description: The unique identity identifer who will get the claim
+            example: 118Rhos6r43nuSimdH95Djjfw4BEpHeP5DNm3a696t
+          to:
+            type: string
+            format: string
+            description: The unique issuer identity identifier
+            example: 23483ty6ooiyuSimdlfhgyfwnfyugopP5DNm3a7856

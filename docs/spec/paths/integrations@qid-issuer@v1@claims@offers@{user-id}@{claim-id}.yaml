@@ -1,0 +1,26 @@
+get:
+  parameters:
+    - $ref: '#/components/parameters/userId'
+    - $ref: '#/components/parameters/claimId'
+  tags:
+    - Claims
+  summary: >-
+    It returns offer for the claim retrieving that you can convert to qrCode and
+    scan with the wallet app
+  operationId: claimOffer
+  responses:
+    '200':
+      description: Success
+      content:
+        applications/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/ClaimOffer'
+    '400':
+      description: Bad request
+    '403':
+      description: Forbidden. User is not the claim owner
+    '500':
+      description: Internal error

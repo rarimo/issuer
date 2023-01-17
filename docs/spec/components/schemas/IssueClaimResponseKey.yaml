@@ -1,0 +1,12 @@
+type: object
+required:
+  - id
+  - type
+properties:
+  id:
+    type: string
+    format: string
+  type:
+    type: string
+    enum:
+      - claim_id
