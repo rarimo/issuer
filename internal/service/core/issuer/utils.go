@@ -2,43 +2,47 @@ package issuer
 
 import (
 	"context"
-	"strconv"
 
-	"gitlab.com/distributed_lab/logan/v3/errors"
+	"github.com/iden3/go-jwz"
+	"github.com/iden3/go-schema-processor/verifiable"
+	"github.com/pkg/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity"
 )
 
-func (isr *issuer) generateMTPForOfferCallback(ctx context.Context, claim *data.Claim) error {
-	lastState, err := isr.State.CommittedStateQ.GetLatest()
+func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) error {
+	_, checkRevLink, err := claims.GetCheckClaimRevLink(
+		isr.domain,
+		claim.CoreClaim.GetRevocationNonce(),
+		verifiable.SparseMerkleTreeProof,
+	)
 	if err != nil {
-		return errors.Wrap(err, "failed to get last committed state from db")
+		return errors.Wrap(err, "failed to create revocation check url")
 	}
 
-	if !lastState.IsGenesis {
-		claim.MTP, err = isr.GenerateMTP(ctx, claim.CoreClaim.Claim)
-		if err != nil {
-			return errors.Wrap(err, "failed to generate merkle tree proof")
+	isr.AuthClaim.MTP, err = isr.GenerateProof(ctx, isr.AuthClaim.CoreClaim.Claim, isr.State.ClaimsTree.Root())
+	if err != nil {
+		return errors.Wrap(err, "failed to generate auth claim inclusion proof")
+	}
+
+	claim.SignatureProof, err = isr.signClaim(claim.CoreClaim.Claim, checkRevLink)
+	if err != nil {
+		return errors.Wrap(err, "failed to get signature proof")
+	}
+
+	claim.MTP, err = isr.GenerateMTP(ctx, claim.CoreClaim.Claim)
+	if err != nil {
+		if errors.Is(err, identity.ErrClaimWasNotPublishedYet) {
+			return nil
 		}
+		return errors.Wrap(err, "failed to generate merkle tree proof")
 	}
 
 	return nil
 }
 
-func (isr *issuer) retrieveClaim(idRaw string) (*data.Claim, error) {
-	claimID, err := strconv.ParseUint(idRaw, 10, 64)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse claim id")
-	}
-
-	claim, err := isr.State.ClaimsQ.Get(claimID)
-	if err != nil {
-		return nil, errors.Wrap(err, "")
-	}
-
-	return claim, nil
-}
-
-func checkClaimRetriever(claim *data.Claim, claimRetriever string) (bool, error) {
+func (isr *issuer) checkClaimRetriever(claim *data.Claim, claimRetriever string, token *jwz.Token) (bool, error) {
 	claimRecipientID, err := claim.CoreClaim.GetID()
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get claim recipient identifier")
@@ -48,5 +52,18 @@ func checkClaimRetriever(claim *data.Claim, claimRetriever string) (bool, error)
 		return false, nil
 	}
 
+	isZKPValid, err := token.Verify(isr.authVerificationKey)
+	if err != nil {
+		return false, errors.Wrap(ErrProofVerifyFailed, err.Error())
+	}
+
+	if !isZKPValid {
+		return false, nil
+	}
+
 	return true, nil
+}
+
+func strptr(str string) *string {
+	return &str
 }

@@ -13,11 +13,6 @@ const (
 
 	SchemaFormatJSONLD = "json-ld"
 	SchemaFormatJSON   = "json"
-
-	AuthBJJCredentialHash          = "ca938857241db9451ea329256b9c06e5"                                                                       //nolint
-	AuthBJJCredentialSchemaURL     = "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/auth.json-ld"           //nolint
-	KYCFullNameCredentialSchemaURL = "https://raw.githubusercontent.com/OmegaTymbJIep/schemas/main/kyc_credentials/kyc_credentials.json-ld"   //nolint
-	QDAOMembershipSchemaURL        = "https://raw.githubusercontent.com/OmegaTymbJIep/schemas/main/q_dao_membership/q_dao_membership.json-ld" //nolint
 )
 
 var (

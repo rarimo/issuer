@@ -2,7 +2,6 @@ package requests
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -13,13 +12,11 @@ import (
 const (
 	claimIDPathParam = "claim-id"
 	UserIDPathParam  = "user-id"
-
-	minClaimID = 2
 )
 
 type ClaimOfferRequest struct {
 	UserID  *core.ID
-	ClaimID uint64
+	ClaimID string
 }
 
 type claimOfferRequestRaw struct {
@@ -37,14 +34,14 @@ func NewClaimOffer(r *http.Request) (*ClaimOfferRequest, error) {
 		return nil, err
 	}
 
-	return requestBody.parse()
+	return requestBody.parse(), nil
 }
 
 // nolint
 func (req *claimOfferRequestRaw) validate() error {
 	return validation.Errors{
 		"path/{claim-id}": validation.Validate(
-			req.ClaimID, validation.Required, validation.By(MustBeCorrectClaimID),
+			req.ClaimID, validation.Required, validation.By(MustBeClaimID),
 		),
 		"path/{user-id}": validation.Validate(
 			req.UserID, validation.Required, validation.By(MustBeIden3Identifier),
@@ -66,32 +63,12 @@ func MustBeIden3Identifier(src interface{}) error {
 	return nil
 }
 
-func MustBeCorrectClaimID(src interface{}) error {
-	claimIDRaw, ok := src.(string)
-	if !ok {
-		return errors.New("it is not a claim id")
-	}
-
-	claimID, err := strconv.ParseUint(claimIDRaw, 10, 64)
-	if err != nil {
-		return errors.New("it is not valid uint64")
-	}
-
-	if claimID < minClaimID {
-		return errors.New("it is should be greater than 1")
-	}
-
-	return nil
-}
-
-func (req *claimOfferRequestRaw) parse() (*ClaimOfferRequest, error) {
+func (req *claimOfferRequestRaw) parse() *ClaimOfferRequest {
 	userID := &core.ID{}
-
 	_ = userID.UnmarshalText([]byte(req.UserID))
-	claimID, _ := strconv.ParseUint(req.ClaimID, 10, 64)
 
 	return &ClaimOfferRequest{
 		UserID:  userID,
-		ClaimID: claimID,
-	}, nil
+		ClaimID: req.ClaimID,
+	}
 }

@@ -5,6 +5,7 @@ post:
   operationId: issueClaim
   parameters:
     - $ref: '#/components/parameters/userId'
+    - $ref: '#/components/parameters/claimId'
   requestBody:
     content:
       application/json:

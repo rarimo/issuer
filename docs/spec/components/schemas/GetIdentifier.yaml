@@ -1,0 +1,16 @@
+allOf:
+  - $ref: '#/components/schemas/GetIdentifierKey'
+  - type: object
+    required:
+      - attibutes
+    properties:
+      attributes:
+        type: object
+        required:
+          - identifier
+        properties:
+          identifier:
+            type: string
+            format: string
+            description: Issuer identity identifier
+            example: 113LHmjU73rfavoSpQ5JkkAKZNxbFtwhL3g7JEnXHe

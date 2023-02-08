@@ -8,15 +8,9 @@ allOf:
       attributes:
         type: object
         required:
-          - schema_type
           - schema_data
           - expiration
         properties:
-          schema_type:
-            type: string
-            format: string
-            description: The schema type
-            example: KYCFullNameCredentials
           schema_data:
             oneOf:
               - $ref: '#/components/schemas/KYCFullNameCredentialsSchema'

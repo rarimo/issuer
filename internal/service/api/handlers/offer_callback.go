@@ -18,15 +18,21 @@ func OfferCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := Issuer(r).OfferCallback(r.Context(), req.FetchMessage)
+	response, err := Issuer(r).OfferCallback(r.Context(), req)
 	switch {
-	case errors.Is(err, issuer.ErrClaimRetrieverIsNotClaimOwner):
-		Log(r).WithField("reason", err).Error("Forbidden")
+	case errors.Is(err, issuer.ErrClaimRetrieverIsNotClaimOwner),
+		errors.Is(err, issuer.ErrRepeatedCallbackRequest),
+		errors.Is(err, issuer.ErrProofVerifyFailed):
+		Log(r).WithField("reason", err).Debug("Forbidden")
 		ape.RenderErr(w, problems.Forbidden())
 		return
 	case errors.Is(err, issuer.ErrMessageRecipientIsNotIssuer):
-		Log(r).WithField("reason", err).Error("Bad request")
+		Log(r).WithField("reason", err).Debug("Bad request")
 		ape.RenderErr(w, problems.BadRequest(errors.Cause(err))...)
+		return
+	case errors.Is(err, issuer.ErrClaimOfferIsNotExist), errors.Is(err, issuer.ErrClaimIsNotExist):
+		Log(r).WithField("reason", err).Debug("Not found")
+		ape.RenderErr(w, problems.NotFound())
 		return
 	case err != nil:
 		Log(r).WithError(err).Error("Failed to issue claim")

@@ -9,7 +9,6 @@ import (
 	"gitlab.com/q-dev/q-id/issuer/internal/config"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/schemas"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
 )
 
@@ -54,12 +53,12 @@ func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *cor
 
 	authClaim := &data.Claim{
 		CoreClaim:  data.NewCoreClaim(coreAuthClaim),
-		SchemaURL:  schemas.AuthBJJCredentialSchemaURL,
-		SchemaType: claims.AuthBJJCredentialSchemaType.ToRaw(),
+		SchemaURL:  claims.AuthBJJCredentialSchemaURL,
+		SchemaType: claims.AuthBJJCredentialSchemaType,
 		Data:       authClaimData,
 	}
 
-	authClaim.MTP, err = iden.generateProof(ctx, coreAuthClaim, nil)
+	authClaim.MTP, err = iden.GenerateProof(ctx, coreAuthClaim, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate proof")
 	}
@@ -89,7 +88,7 @@ func (iden *Identity) parseIdentity(
 		return errors.Wrap(err, "failed to generate identifier from the genesis state")
 	}
 
-	authClaim.MTP, err = iden.generateProof(ctx, authClaim.CoreClaim.Claim, nil)
+	authClaim.MTP, err = iden.GenerateProof(ctx, authClaim.CoreClaim.Claim, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate proof")
 	}

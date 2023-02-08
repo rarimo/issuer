@@ -22,17 +22,17 @@ CREATE TABLE claims(
    data              BYTEA,
    core_claim        BYTEA                    NOT NULL,
    signature_proof   BYTEA,
-   credential_status BYTEA
+   credential_status BYTEA,
+   user_id           VARCHAR(42)              NOT NULL
 );
 
 CREATE TABLE claims_offers(
-    id         CHAR(36)     PRIMARY KEY       NOT NULL,
-    from_id    VARCHAR(42)                    NOT NULL,
-    to_id      CHAR(42)                       NOT NULL,
-    created_at TIMESTAMP    WITHOUT TIME ZONE NOT NULL,
-    claim_id   BIGINT                         NOT NULL,
-
-    FOREIGN KEY (claim_id) REFERENCES claims(id)
+    id          CHAR(36)     PRIMARY KEY       NOT NULL,
+    from_id     VARCHAR(42)                    NOT NULL,
+    to_id       CHAR(42)                       NOT NULL,
+    created_at  TIMESTAMP    WITHOUT TIME ZONE NOT NULL,
+    claim_id    VARCHAR(256)                   NOT NULL,
+    is_received BOOLEAN
 );
 
 CREATE TABLE roots_tree(

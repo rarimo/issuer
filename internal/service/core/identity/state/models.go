@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	StateTransitionCircuitWasmPath = "/stateTransition/circuit.wasm"
-	StateTransitionCircuitFinalKey = "/stateTransition/circuit_final.zkey"
+	StateTransitionCircuitWasmPath = "/state_transition/circuit.wasm"
+	StateTransitionCircuitFinalKey = "/state_transition/circuit_final.zkey"
 )
 
 var (
@@ -30,6 +30,7 @@ type IdentityState struct {
 	RevocationsTree *merkletree.MerkleTree
 	RootsTree       *merkletree.MerkleTree
 
+	circuits     map[string][]byte
 	publisher    publisher.Publisher
 	circuitsPath string
 

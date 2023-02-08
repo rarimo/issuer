@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data/pg"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/schemas"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state/publisher"
 	treestorage "gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state/tree_storage"
 )
@@ -41,8 +40,13 @@ func NewIdentityState(ctx context.Context, cfg Config) (*IdentityState, error) {
 
 	go statePublisher.Run(ctx)
 
+	circuits, err := ReadCircuits(cfg.IdentityConfig.CircuitsPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read circuits")
+	}
+
 	return &IdentityState{
-		circuitsPath:    cfg.IdentityConfig.CircuitsPath,
+		circuits:        circuits,
 		CommittedStateQ: pg.NewCommittedStateQ(cfg.DB),
 		ClaimsQ:         pg.NewClaimsQ(cfg.DB),
 		ClaimsTree:      claimsTree,
@@ -51,6 +55,22 @@ func NewIdentityState(ctx context.Context, cfg Config) (*IdentityState, error) {
 		publisher:       statePublisher,
 		Mutex:           &sync.Mutex{},
 	}, nil
+}
+
+func ReadCircuits(path string) (circuits map[string][]byte, err error) {
+	circuits = make(map[string][]byte)
+
+	circuits[StateTransitionCircuitFinalKey], err = ReadFileByPath(path, StateTransitionCircuitFinalKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read state transition circuit final")
+	}
+
+	circuits[StateTransitionCircuitWasmPath], err = ReadFileByPath(path, StateTransitionCircuitWasmPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read state transition circuit wasm")
+	}
+
+	return circuits, nil
 }
 
 func (is *IdentityState) GetCurrentStateHash() (*merkletree.Hash, error) {
@@ -84,7 +104,7 @@ func (is *IdentityState) AddClaimMT(claim *core.Claim) error {
 }
 
 func (is *IdentityState) SetupGenesis(publicKey *babyjub.PublicKey) (*core.ID, *core.Claim, error) {
-	schemaHash, err := core.NewSchemaHashFromHex(schemas.AuthBJJCredentialHash)
+	schemaHash, err := core.NewSchemaHashFromHex(claims.AuthBJJCredentialHash)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to load the schema hash from hex")
 	}
