@@ -1,0 +1,9 @@
+type: object
+required:
+  - issuer
+  - mtp
+properties:
+  issuer:
+    $ref: '#/components/schemas/RevocationCheckIssuer'
+  mtp:
+    $ref: '#/components/schemas/RevocationCheckMTP'

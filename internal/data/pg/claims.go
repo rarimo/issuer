@@ -12,9 +12,11 @@ import (
 )
 
 const (
-	claimsTableName     = "claims"
-	idColumnName        = "id"
-	coreClaimColumnName = "core_claim"
+	claimsTableName      = "claims"
+	idColumnName         = "id"
+	coreClaimColumnName  = "core_claim"
+	schemaTypeColumnName = "schema_type"
+	userIDColumnName     = "user_id"
 
 	authClaimID = 1
 )
@@ -73,6 +75,24 @@ func (q *claimsQ) GetAuthClaim() (*data.Claim, error) {
 		sq.Select("*").
 			From(claimsTableName).
 			Where(sq.Eq{idColumnName: authClaimID}))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to select rows")
+	}
+
+	return &result, nil
+}
+
+func (q *claimsQ) GetBySchemaType(schemaType string, userID string) (*data.Claim, error) {
+	var result data.Claim
+
+	err := q.db.Get(&result,
+		sq.Select("*").
+			From(claimsTableName).
+			Where(sq.Eq{schemaTypeColumnName: schemaType}).
+			Where(sq.Eq{userIDColumnName: userID}))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil

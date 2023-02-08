@@ -1,0 +1,19 @@
+get:
+  tags:
+    - Identity
+  summary: Get issuer identity identifier
+  operationId: getIdentifier
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/GetIdentifier'
+    '500':
+      description: Internal error

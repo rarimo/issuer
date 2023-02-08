@@ -12,7 +12,7 @@ import (
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
 )
 
-func (iden *Identity) generateProof(
+func (iden *Identity) GenerateProof(
 	ctx context.Context,
 	claim *core.Claim,
 	claimTreeRoot *merkletree.Hash,
@@ -68,6 +68,9 @@ func (iden *Identity) GenerateMTP(
 	inclusionProof, err := iden.State.GetInclusionProof(ctx, claim, &claimTreeRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate merkle tree proof")
+	}
+	if !inclusionProof.Existence {
+		return nil, ErrClaimWasNotPublishedYet
 	}
 
 	lastCommittedState := state.CommittedStateFromRaw(lastCommittedStateRaw)

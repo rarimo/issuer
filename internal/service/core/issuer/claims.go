@@ -10,20 +10,21 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
+	resources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
 func (isr *issuer) compactClaim(
 	ctx context.Context,
 	userID *core.ID,
 	expiration time.Time,
-	schemaType claims.ClaimSchemaType,
+	schemaType resources.ClaimSchemaType,
 	schemaData []byte,
 ) (*data.Claim, error) {
 	slots, schemaHash, err := isr.schemaBuilder.Process(
 		ctx,
 		schemaData,
-		schemaType.ToRaw(),
-		claims.ClaimSchemaList[schemaType].ClaimSchemaURL,
+		resources.ClaimSchemaList[schemaType].ClaimSchemaName,
+		resources.ClaimSchemaList[schemaType].ClaimSchemaURL,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to process schema")
@@ -55,12 +56,13 @@ func (isr *issuer) compactClaim(
 	}
 
 	return &data.Claim{
-		SchemaURL:        claims.ClaimSchemaList[schemaType].ClaimSchemaURL,
+		SchemaURL:        resources.ClaimSchemaList[schemaType].ClaimSchemaURL,
 		SchemaType:       schemaType.ToRaw(),
 		CoreClaim:        data.NewCoreClaim(coreClaim),
 		CredentialStatus: credentialsStatus,
 		SignatureProof:   signProof,
 		Data:             schemaData,
+		UserID:           userID.String(),
 	}, nil
 }
 

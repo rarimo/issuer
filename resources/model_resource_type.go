@@ -9,7 +9,8 @@ type ResourceType string
 // List of ResourceType
 const (
 	CLAIM_OFFER   ResourceType = "claim_offer"
-	CLAIM_SCHEMA  ResourceType = "claim_schema"
+	IDENTIFIER    ResourceType = "identifier"
+	CLAIM_DATA    ResourceType = "claim_data"
 	CLAIM_ID      ResourceType = "claim_id"
 	PUBLISH_STATE ResourceType = "publish_state"
 )

@@ -1,0 +1,19 @@
+type: object
+required:
+  - existence
+  - siblings
+properties:
+  existence:
+    type: boolean
+    format: bool
+    description: Is claim reverted or no
+    example: false
+  siblings:
+    type: array
+    items:
+      type: string
+      format: string
+      description: Merkle tree sibling's hash
+      example: 035683e5f3210a01f9f778ebc8e3a57d03503ceb21dbe544d3ca588f2f895d17
+    description: List of merkle tree sibling as a way from claim to the merkle tree hash
+    example: []

@@ -12,6 +12,7 @@ type ClaimsQ interface {
 
 	Get(id uint64) (*Claim, error)
 	GetAuthClaim() (*Claim, error)
+	GetBySchemaType(schemaType string, userID string) (*Claim, error)
 	Insert(*Claim) error
 }
 
@@ -25,6 +26,7 @@ type Claim struct {
 	MTP              []byte     `db:"-"                 structs:"-"`
 	SignatureProof   []byte     `db:"signature_proof"   structs:"signature_proof"`
 	CredentialStatus []byte     `db:"credential_status" structs:"credential_status"`
+	UserID           string     `db:"user_id"           structs:"user_id"`
 }
 
 type CoreClaim struct {

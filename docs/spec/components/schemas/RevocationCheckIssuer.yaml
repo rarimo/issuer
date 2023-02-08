@@ -1,0 +1,27 @@
+type: object
+required:
+  - state
+  - root_of_roots
+  - claims_tree_roots
+  - revocation_tree_root
+properties:
+  state:
+    type: string
+    format: string
+    description: Issuer state hash
+    example: b76d94305ce30afdbc3a3af2b9d80ea340b3d87f791649ed99a267a5ff714529
+  root_of_roots:
+    type: string
+    format: string
+    description: Issuer's roots merkle tree root hash
+    example: a28ba837a0953682f40511eef8755339cb0f7973819cc4d92438bf41c220ad05
+  claims_tree_roots:
+    type: string
+    format: string
+    description: Issuer's claims merkle tree root hash
+    example: 035683e5f3210a01f9f778ebc8e3a57d03503ceb21dbe544d3ca588f2f895d17
+  revocation_tree_root:
+    type: string
+    format: string
+    description: Issuer's revocations merkle tree root hash
+    example: '0000000000000000000000000000000000000000000000000000000000000000'

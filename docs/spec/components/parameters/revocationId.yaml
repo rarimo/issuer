@@ -1,0 +1,8 @@
+name: revocation-id
+in: path
+description: The claim unique revocation id
+required: true
+example: '12345'
+schema:
+  type: string
+  format: string

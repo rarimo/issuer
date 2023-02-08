@@ -55,3 +55,16 @@ func (q *claimsOffersQ) Insert(claimOffer *data.ClaimOffer) error {
 
 	return nil
 }
+
+func (q *claimsOffersQ) Update(claimOffer *data.ClaimOffer) error {
+	err := q.db.Exec(
+		sq.Update(claimsOffersTableName).
+			SetMap(structs.Map(claimOffer)).
+			Where(sq.Eq{idColumnName: claimOffer.ID}),
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to insert rows")
+	}
+
+	return nil
+}

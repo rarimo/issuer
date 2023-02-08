@@ -31,7 +31,15 @@ func (s *service) router() chi.Router {
 					r.Post("/callback", handlers.OfferCallback)
 				})
 
-				r.Post("/issue/{user-id}", handlers.IssueClaim)
+				r.Route("/revocations", func(r chi.Router) {
+					r.Get("/check/{rev-id}", handlers.RevocationCheck)
+				})
+
+				r.Post("/issue/{user-id}/{claim-id}", handlers.IssueClaim)
+			})
+
+			r.Route("/identity", func(r chi.Router) {
+				r.Get("/identifier", handlers.GetIdentifier)
 			})
 		})
 	})

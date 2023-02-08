@@ -9,20 +9,21 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	core "github.com/iden3/go-iden3-core"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 	"gitlab.com/q-dev/q-id/issuer/resources"
+	claimResources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
 type IssueClaimRequest struct {
 	UserID     *core.ID
-	SchemaType claims.ClaimSchemaType
+	SchemaType claimResources.ClaimSchemaType
 	Expiration time.Time
 	SchemaData []byte
 }
 
 type issueClaimRequestRaw struct {
-	UserID string
-	Body   resources.IssueClaimRequest
+	UserID  string
+	ClaimID string
+	Body    resources.IssueClaimRequest
 }
 
 func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
@@ -33,23 +34,26 @@ func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
 	}
 
 	requestRaw := issueClaimRequestRaw{
-		UserID: chi.URLParam(r, UserIDPathParam),
-		Body:   requestBody,
+		UserID:  chi.URLParam(r, UserIDPathParam),
+		ClaimID: chi.URLParam(r, claimIDPathParam),
+		Body:    requestBody,
 	}
 
 	if err := requestRaw.validate(); err != nil {
 		return nil, err
 	}
 
-	schemaType := requestRaw.Body.Data.Attributes.SchemaType
+	schemaType := claimResources.ClaimSchemaTypeList[requestRaw.ClaimID]
 	if err := validation.Validate(
 		requestRaw.Body.Data.Attributes.SchemaData,
-		validation.By(claims.ClaimSchemaList[claims.ClaimSchemaTypeList[schemaType]].ClaimDataValidateFunc),
+		validation.By(
+			claimResources.ClaimSchemaList[schemaType].ClaimDataValidateFunc,
+		),
 	); err != nil {
 		return nil, errors.Wrap(err, "invalid schema data")
 	}
 
-	parseData, err := claims.ClaimSchemaList[claims.ClaimSchemaTypeList[schemaType]].ClaimDataParseFunc(
+	parseData, err := claimResources.ClaimSchemaList[schemaType].ClaimDataParseFunc(
 		requestRaw.Body.Data.Attributes.SchemaData,
 	)
 	if err != nil {
@@ -67,8 +71,8 @@ func (req *issueClaimRequestRaw) validate() error {
 		"path/{user-id}": validation.Validate(
 			req.UserID, validation.Required, validation.By(MustBeIden3Identifier),
 		),
-		"data/attributes/schema_type": validation.Validate(
-			req.Body.Data.Attributes.SchemaType, validation.Required, validation.By(MustBeSchemaType),
+		"path/{claim-id}": validation.Validate(
+			req.ClaimID, validation.Required, validation.By(MustBeClaimID),
 		),
 		"data/attributes/schema_data": validation.Validate(
 			req.Body.Data.Attributes.SchemaData, validation.Required,
@@ -79,14 +83,14 @@ func (req *issueClaimRequestRaw) validate() error {
 	}.Filter()
 }
 
-func MustBeSchemaType(src interface{}) error {
+func MustBeClaimID(src interface{}) error {
 	schemaTypeRaw, ok := src.(string)
 	if !ok {
 		return errors.New("it is not a schema type")
 	}
 
-	if _, ok := claims.ClaimSchemaTypeList[schemaTypeRaw]; !ok {
-		return errors.New("it is not a schema type")
+	if _, ok := claimResources.ClaimSchemaTypeList[schemaTypeRaw]; !ok {
+		return errors.New("schema type doesn't exist")
 	}
 
 	return nil
@@ -118,7 +122,7 @@ func (req *issueClaimRequestRaw) parse() *IssueClaimRequest {
 	return &IssueClaimRequest{
 		Expiration: expiration,
 		UserID:     userID,
-		SchemaType: claims.ClaimSchemaTypeList[req.Body.Data.Attributes.SchemaType],
+		SchemaType: claimResources.ClaimSchemaTypeList[req.ClaimID],
 		SchemaData: schemaDataTrimmed,
 	}
 }

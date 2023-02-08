@@ -3,11 +3,8 @@ package claims
 import (
 	"time"
 
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/iden3/go-schema-processor/processor"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/schemas"
-	validatonPkg "gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/validation"
 )
 
 const (
@@ -21,6 +18,12 @@ const (
 	CorrectSchemaHashBytesLength = 16
 	ExpirationWithoutExpiration  = 0
 	credentialStatusCheckURL     = "/integrations/qid-issuer/v1/claims/revocations/check/"
+
+	Iden3CredentialSchemaType   = "Iden3Credential"   //nolint
+	AuthBJJCredentialSchemaType = "AuthBJJCredential" //nolint
+
+	AuthBJJCredentialHash      = "ca938857241db9451ea329256b9c06e5"                                                             //nolint
+	AuthBJJCredentialSchemaURL = "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/auth.json-ld" //nolint
 )
 
 var (
@@ -35,45 +38,4 @@ type CoreClaimData struct {
 	SubjectID       string
 	Expiration      time.Time
 	SubjectPosition string
-}
-
-type ClaimSchemaType string
-
-func (c ClaimSchemaType) ToRaw() string {
-	return string(c)
-}
-
-// TODO: everything below should be moved in the some config or something else
-
-const (
-	Iden3CredentialSchema            ClaimSchemaType = "Iden3Credential"           //nolint
-	AuthBJJCredentialSchemaType      ClaimSchemaType = "AuthBJJCredential"         //nolint
-	KYCFullNameCredentialsSchemaType ClaimSchemaType = "KYC Full name credentials" //nolint
-	QDAOMembershipSchemaType         ClaimSchemaType = "Q DAO Membership"
-)
-
-type ClaimDataParseFunc = func([]byte) ([]byte, error)
-
-type KYCSchema struct {
-	ClaimSchemaURL        string
-	ClaimDataValidateFunc validation.RuleFunc
-	ClaimDataParseFunc    ClaimDataParseFunc
-}
-
-var ClaimSchemaTypeList = map[string]ClaimSchemaType{
-	"KYC Full name credentials": KYCFullNameCredentialsSchemaType,
-	"Q DAO Membership":          QDAOMembershipSchemaType,
-}
-
-var ClaimSchemaList = map[ClaimSchemaType]KYCSchema{
-	KYCFullNameCredentialsSchemaType: {
-		ClaimSchemaURL:        schemas.KYCFullNameCredentialSchemaURL,
-		ClaimDataValidateFunc: validatonPkg.MustBeKYCFullNameCredentials,
-		ClaimDataParseFunc:    validatonPkg.ConvertKYCFullNameCredentials,
-	},
-	QDAOMembershipSchemaType: {
-		ClaimSchemaURL:        schemas.QDAOMembershipSchemaURL,
-		ClaimDataValidateFunc: validatonPkg.MustBeQDAOMembership,
-		ClaimDataParseFunc:    validatonPkg.ConvertQDAOMembership,
-	},
 }

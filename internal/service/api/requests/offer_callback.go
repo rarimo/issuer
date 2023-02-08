@@ -56,7 +56,7 @@ func (r *OfferCallbackRequest) validate() error {
 			r.FetchMessage.To, validation.Required, validation.By(MustBeIden3Identifier),
 		),
 		"message/body/id": validation.Validate(
-			r.FetchMessage.Body.ID, validation.Required, validation.By(MustBeCorrectClaimID),
+			r.FetchMessage.Body.ID, validation.Required, validation.By(MustBeClaimID),
 		),
 	}.Filter()
 }

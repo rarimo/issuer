@@ -15,7 +15,7 @@ import (
 	"github.com/iden3/go-rapidsnark/prover"
 	"github.com/iden3/go-rapidsnark/witness"
 	"github.com/pkg/errors"
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
+	dataPkg "gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state/publisher"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/zkp"
 )
@@ -24,7 +24,7 @@ func (is *IdentityState) PublishOnChain(ctx context.Context, identityInfo *Ident
 	is.Lock()
 	defer is.Unlock()
 
-	processingStates, err := is.CommittedStateQ.New().WhereStatus(data.StatusProcessing).Select()
+	processingStates, err := is.CommittedStateQ.New().WhereStatus(dataPkg.StatusProcessing).Select()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to select committed states")
 	}
@@ -38,7 +38,7 @@ func (is *IdentityState) PublishOnChain(ctx context.Context, identityInfo *Ident
 	}
 
 	newStateCommit := (&CommittedState{
-		Status:              data.StatusProcessing,
+		Status:              dataPkg.StatusProcessing,
 		CreatedAt:           time.Now(),
 		IsGenesis:           false,
 		RootsTreeRoot:       is.RootsTree.Root(),
@@ -63,7 +63,7 @@ func (is *IdentityState) prepareTransitionInfo(
 	ctx context.Context,
 	identityInfo *IdentityInfo,
 ) (*publisher.StateTransitionInfo, error) {
-	latestStateRaw, err := is.CommittedStateQ.New().WhereStatus(data.StatusCompleted).GetLatest()
+	latestStateRaw, err := is.CommittedStateQ.New().WhereStatus(dataPkg.StatusCompleted).GetLatest()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the last committed state from db")
 	}
@@ -218,12 +218,7 @@ func circuitsState(committedState *CommittedState) (*circuits.TreeState, error) 
 }
 
 func (is *IdentityState) generateTransitionProof(transitionInputs []byte) (*zkp.FullProof, error) {
-	wasm, err := readFileByPath(is.circuitsPath, StateTransitionCircuitWasmPath)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read file with circuit wasm by path")
-	}
-
-	wtnsCalculator, err := witness.NewCircom2WitnessCalculator(wasm, true)
+	wtnsCalculator, err := witness.NewCircom2WitnessCalculator(is.circuits[StateTransitionCircuitWasmPath], true)
 	if err != nil {
 		return nil, errors.New("failed to create witness calculator")
 	}
@@ -238,12 +233,7 @@ func (is *IdentityState) generateTransitionProof(transitionInputs []byte) (*zkp.
 		return nil, errors.Wrap(err, "failed to calculate witnesses")
 	}
 
-	provingKey, err := readFileByPath(is.circuitsPath, StateTransitionCircuitFinalKey)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read file with zkp key by path")
-	}
-
-	rapidProof, err := prover.Groth16Prover(provingKey, wtnsBytes)
+	rapidProof, err := prover.Groth16Prover(is.circuits[StateTransitionCircuitFinalKey], wtnsBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate prov with groth16")
 	}
@@ -272,12 +262,13 @@ func (cs *CommittedState) StateHash() (*merkletree.Hash, error) {
 	return hash, nil
 }
 
-func readFileByPath(basePath string, fileName string) ([]byte, error) {
+func ReadFileByPath(basePath string, fileName string) ([]byte, error) {
 	path := filepath.Join(basePath, fileName)
 	f, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to open file '%s' by path '%s'", fileName, path)
 	}
+
 	data, err := io.ReadAll(f)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read file '%s' by path '%s'", fileName, path)

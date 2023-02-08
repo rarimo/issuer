@@ -8,7 +8,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/fatih/structs v1.1.0
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/go-ozzo/ozzo-validation/v4 v4.2.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/uuid v1.2.0
 	github.com/iden3/go-circuits v0.1.0
 	github.com/iden3/go-iden3-core v0.1.0
@@ -25,6 +25,8 @@ require (
 	gitlab.com/distributed_lab/figure v2.1.0+incompatible
 	gitlab.com/distributed_lab/kit v1.11.1
 	gitlab.com/distributed_lab/logan v3.8.1+incompatible
+	gitlab.com/distributed_lab/running v0.0.0-20200706131153-4af0e83eb96c
+	gitlab.com/q-dev/q-id/resources v0.0.0-20230119111250-60534a1d4326
 )
 
 require (
@@ -88,7 +90,7 @@ require (
 	github.com/qri-io/jsonschema v0.2.1 // indirect
 	github.com/rjeczalik/notify v0.9.1 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spacemonkeygo/spacelog v0.0.0-20180420211403-2296661a0572 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
@@ -103,7 +105,6 @@ require (
 	github.com/wasmerio/wasmer-go v1.0.4 // indirect
 	github.com/whyrusleeping/tar-utils v0.0.0-20180509141711-8c6c8ba81d5c // indirect
 	gitlab.com/distributed_lab/lorem v0.2.0 // indirect
-	gitlab.com/distributed_lab/running v0.0.0-20200706131153-4af0e83eb96c // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect

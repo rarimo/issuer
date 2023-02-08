@@ -12,6 +12,7 @@ import (
 	"github.com/iden3/iden3comm/protocol"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
+	resources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
 func NewClaimOffer(callBackURL string, from, to *core.ID, claim *data.Claim) *protocol.CredentialsOfferMessage {
@@ -24,8 +25,8 @@ func NewClaimOffer(callBackURL string, from, to *core.ID, claim *data.Claim) *pr
 			URL: callBackURL,
 			Credentials: []protocol.CredentialOffer{
 				protocol.CredentialOffer{
-					ID:          fmt.Sprint(claim.ID),
-					Description: claim.SchemaType,
+					ID:          claim.SchemaType,
+					Description: resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName,
 				},
 			},
 		},
@@ -36,10 +37,11 @@ func NewClaimOffer(callBackURL string, from, to *core.ID, claim *data.Claim) *pr
 
 func ClaimOfferToRaw(claimOffer *protocol.CredentialsOfferMessage, createdAt time.Time) *data.ClaimOffer {
 	claimOfferRaw := data.ClaimOffer{
-		ID:        claimOffer.ID,
-		From:      claimOffer.From,
-		To:        claimOffer.To,
-		CreatedAt: createdAt,
+		ID:         claimOffer.ThreadID,
+		From:       claimOffer.From,
+		To:         claimOffer.To,
+		CreatedAt:  createdAt,
+		IsReceived: false,
 	}
 
 	if len(claimOffer.Body.Credentials) > 0 {
@@ -74,12 +76,12 @@ func ClaimModelToIden3Credential(claim *data.Claim) (*verifiable.Iden3Credential
 
 	res := &verifiable.Iden3Credential{
 		ID:        fmt.Sprint(claim.ID),
-		Type:      []string{Iden3CredentialSchema.ToRaw()},
+		Type:      []string{Iden3CredentialSchemaType},
 		RevNonce:  claim.CoreClaim.GetRevocationNonce(),
 		Updatable: claim.CoreClaim.GetFlagUpdatable(),
 		Version:   claim.CoreClaim.GetVersion(),
 		Context: []string{
-			ClaimSchemaList[ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaURL,
+			resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaURL,
 			claim.SchemaURL,
 		},
 		CredentialSchema: struct {
@@ -87,7 +89,7 @@ func ClaimModelToIden3Credential(claim *data.Claim) (*verifiable.Iden3Credential
 			Type string `json:"type"`
 		}{
 			ID:   claim.SchemaURL,
-			Type: claim.SchemaType,
+			Type: resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName,
 		},
 		SubjectPosition:   claimIDPosition,
 		CredentialSubject: credentialData,
@@ -154,7 +156,7 @@ func compactCredentialData(claim *data.Claim) (map[string]interface{}, error) {
 		return nil, errors.Wrap(err, "failed to unmarshal credential subject")
 	}
 
-	credentialData["type"] = claim.SchemaType
+	credentialData["type"] = resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName
 	if len(subjectID.String()) > 0 {
 		credentialData["id"] = subjectID.String()
 	}
