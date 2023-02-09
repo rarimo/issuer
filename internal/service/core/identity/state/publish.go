@@ -71,7 +71,11 @@ func (is *IdentityState) prepareTransitionInfo(
 		return nil, errors.New("the latest state is absent")
 	}
 
-	latestState := CommittedStateFromRaw(latestStateRaw)
+	latestState, err := CommittedStateFromRaw(latestStateRaw)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse the latest committed state")
+	}
+
 	transitionInputs, err := is.prepareTransitionInputs(ctx, identityInfo, latestState)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to prepare state transition inputs")

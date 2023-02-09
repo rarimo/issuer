@@ -6,16 +6,19 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"gitlab.com/q-dev/q-id/issuer/internal/config"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
 )
 
-func (iden *Identity) generateNewIdentity(ctx context.Context, cfg *config.IdentityConfig) error {
+func (iden *Identity) generateNewIdentity(ctx context.Context) error {
 	iden.log.Info("Generating the new Identity")
 
-	identifier, authClaim, err := iden.State.SetupGenesis(cfg.BabyJubJubPrivateKey.Public())
+	if iden.babyJubJubPrivateKey == nil {
+		return errors.New("error generating new identity, babyJubJubPrivateKey is nil")
+	}
+
+	identifier, authClaim, err := iden.State.SetupGenesis(iden.babyJubJubPrivateKey.Public())
 	if err != nil {
 		return errors.Wrap(err, "failed to setup genesis state")
 	}
@@ -46,6 +49,10 @@ func (iden *Identity) generateNewIdentity(ctx context.Context, cfg *config.Ident
 }
 
 func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *core.Claim) error {
+	if iden.babyJubJubPrivateKey == nil {
+		return errors.New("error generating new identity, babyJubJubPrivateKey is nil")
+	}
+
 	authClaimData, err := claims.GenerateAuthClaimData(iden.babyJubJubPrivateKey.Public())
 	if err != nil {
 		return errors.Wrap(err, "failed to generate auth claim data")
@@ -78,7 +85,12 @@ func (iden *Identity) parseIdentity(
 	authClaim *data.Claim,
 	genesisStateRaw *data.CommittedState,
 ) error {
-	genesisStateHash, err := state.CommittedStateFromRaw(genesisStateRaw).StateHash()
+	genesisState, err := state.CommittedStateFromRaw(genesisStateRaw)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse genesis state")
+	}
+
+	genesisStateHash, err := genesisState.StateHash()
 	if err != nil {
 		return errors.Wrap(err, "failed to get genesis state hash")
 	}
@@ -86,6 +98,10 @@ func (iden *Identity) parseIdentity(
 	iden.Identifier, err = core.IdGenesisFromIdenState(core.TypeDefault, genesisStateHash.BigInt())
 	if err != nil {
 		return errors.Wrap(err, "failed to generate identifier from the genesis state")
+	}
+
+	if authClaim == nil || authClaim.CoreClaim == nil || authClaim.CoreClaim.Claim == nil {
+		return errors.New("auth claim is nil")
 	}
 
 	authClaim.MTP, err = iden.GenerateProof(ctx, authClaim.CoreClaim.Claim, nil)

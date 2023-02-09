@@ -139,7 +139,10 @@ func (isr *issuer) GetRevocationStatus(
 		return nil, errors.Wrap(err, "failed to get last committed state")
 	}
 
-	lastCommittedState := state.CommittedStateFromRaw(lastCommittedStateRaw)
+	lastCommittedState, err := state.CommittedStateFromRaw(lastCommittedStateRaw)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get last committed state")
+	}
 
 	mtp, _, err := isr.State.RevocationsTree.GenerateProof(ctx, revID, lastCommittedState.RevocationsTreeRoot)
 	if err != nil {

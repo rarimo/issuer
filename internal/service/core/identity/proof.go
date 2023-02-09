@@ -8,7 +8,7 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	dadata "gitlab.com/q-dev/q-id/issuer/internal/data"
+	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
 )
 
@@ -17,6 +17,10 @@ func (iden *Identity) GenerateProof(
 	claim *core.Claim,
 	claimTreeRoot *merkletree.Hash,
 ) ([]byte, error) {
+	if claim == nil {
+		return nil, errors.New("failed to generate proof, claim is nil")
+	}
+
 	inclusionProof, err := iden.State.GetInclusionProof(ctx, claim, claimTreeRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate inclusion proof")
@@ -54,7 +58,7 @@ func (iden *Identity) GenerateMTP(
 	ctx context.Context,
 	claim *core.Claim,
 ) ([]byte, error) {
-	lastCommittedStateRaw, err := iden.State.CommittedStateQ.WhereStatus(dadata.StatusCompleted).GetLatest()
+	lastCommittedStateRaw, err := iden.State.CommittedStateQ.WhereStatus(data.StatusCompleted).GetLatest()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get last committed state from db")
 	}
@@ -73,7 +77,11 @@ func (iden *Identity) GenerateMTP(
 		return nil, ErrClaimWasNotPublishedYet
 	}
 
-	lastCommittedState := state.CommittedStateFromRaw(lastCommittedStateRaw)
+	lastCommittedState, err := state.CommittedStateFromRaw(lastCommittedStateRaw)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get latest committed state")
+	}
+
 	lastCommittedStateHash, err := lastCommittedState.StateHash()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get latest committed state hash")

@@ -99,7 +99,11 @@ func (cs *CommittedState) ToRaw() *data.CommittedState {
 	return &result
 }
 
-func CommittedStateFromRaw(rawState *data.CommittedState) *CommittedState {
+func CommittedStateFromRaw(rawState *data.CommittedState) (*CommittedState, error) {
+	if rawState == nil {
+		return nil, errors.New("rawState is nil")
+	}
+
 	result := &CommittedState{
 		ID:        rawState.ID,
 		Status:    rawState.Status,
@@ -122,5 +126,5 @@ func CommittedStateFromRaw(rawState *data.CommittedState) *CommittedState {
 	copy(result.RevocationsTreeRoot[:], rawState.RevocationsTreeRoot)
 	copy(result.RootsTreeRoot[:], rawState.RootsTreeRoot)
 
-	return result
+	return result, nil
 }
