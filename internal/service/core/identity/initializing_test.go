@@ -186,7 +186,7 @@ func TestIdentity_generateNewIdentity(t *testing.T) {
 				State: NewTestState(t,
 					&stub.ClaimsQStub{
 						InsertStub: func(claim *data.Claim) error {
-							return errors.New("")
+							return errors.New("test error")
 						},
 					},
 					&stub.CommittedStatesQStub{
@@ -214,7 +214,7 @@ func TestIdentity_generateNewIdentity(t *testing.T) {
 					},
 					&stub.CommittedStatesQStub{
 						InsertStub: func(committedState *data.CommittedState) error {
-							return errors.New("")
+							return errors.New("test error")
 						},
 					},
 				),
@@ -492,6 +492,25 @@ func TestIdentity_saveAuthClaimModel(t *testing.T) {
 			},
 			args: args{
 				coreAuthClaim: nil,
+			},
+		},
+		{
+			name:    "core auth claim is nil",
+			wantErr: true,
+			fields: fields{
+				babyJubJubPrivateKey: correctPrivateKey,
+				State: NewTestState(t,
+					&stub.ClaimsQStub{
+						InsertStub: func(claim *data.Claim) error {
+							return errors.New("test error")
+						},
+					},
+					&stub.CommittedStatesQStub{},
+				),
+				Identifier: &correctIdentifier,
+			},
+			args: args{
+				coreAuthClaim: correctAuthCoreClaim,
 			},
 		},
 	}
