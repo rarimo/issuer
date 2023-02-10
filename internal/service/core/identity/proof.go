@@ -19,12 +19,7 @@ func (iden *Identity) GenerateMTP(
 		return nil, errors.New("failed to generate proof, claim is nil")
 	}
 
-	lastCommittedStateRaw, err := iden.State.CommittedStateQ.WhereStatus(data.StatusCompleted).GetLatest()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get last committed state from db")
-	}
-
-	lastCommittedState, err := state.CommittedStateFromRaw(lastCommittedStateRaw)
+	lastCommittedState, lastCommittedStateRaw, err := iden.GetLatestState()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get latest committed state")
 	}
@@ -57,7 +52,7 @@ func (iden *Identity) GenerateMTP(
 		},
 	}
 
-	if lastCommittedStateRaw.TxID != "" {
+	if lastCommittedStateRaw != nil && lastCommittedStateRaw.TxID != "" {
 		blockTimestamp := int(lastCommittedStateRaw.BlockTimestamp)
 		blockNumber := int(lastCommittedStateRaw.BlockNumber)
 		mtProof.IssuerData.State.TxID = &lastCommittedStateRaw.TxID
@@ -71,6 +66,28 @@ func (iden *Identity) GenerateMTP(
 	}
 
 	return proofRaw, nil
+}
+
+func (iden *Identity) GetLatestState() (*state.CommittedState, *data.CommittedState, error) {
+	lastCommittedStateRaw, err := iden.State.CommittedStateQ.WhereStatus(data.StatusCompleted).GetLatest()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get last committed state from db")
+	}
+
+	if lastCommittedStateRaw != nil {
+		lastCommittedState, err := state.CommittedStateFromRaw(lastCommittedStateRaw)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "failed to get latest committed state")
+		}
+
+		return lastCommittedState, lastCommittedStateRaw, nil
+	}
+
+	return &state.CommittedState{
+		ClaimsTreeRoot:      iden.State.ClaimsTree.Root(),
+		RevocationsTreeRoot: iden.State.RevocationsTree.Root(),
+		RootsTreeRoot:       iden.State.RootsTree.Root(),
+	}, nil, nil
 }
 
 func strToPtr(s string) *string {

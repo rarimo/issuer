@@ -3,6 +3,7 @@ package identity
 import (
 	"context"
 	"crypto/rand"
+	"math/big"
 	"sync"
 	"testing"
 
@@ -122,11 +123,12 @@ func TestIdentity_generateNewIdentity(t *testing.T) {
 	assert.Nil(t, err, "failed to parse correct private key: %s", err)
 
 	tests := []struct {
-		name     string
-		fields   fields
-		ctx      context.Context
-		wantErr  bool
-		expected expected
+		name       string
+		fields     fields
+		ctx        context.Context
+		wantErr    bool
+		beforeTest func(t *testing.T, iden *Identity)
+		afterTest  func(t *testing.T, iden *Identity)
 	}{
 		{
 			name:    "everything is ok",
@@ -144,14 +146,36 @@ func TestIdentity_generateNewIdentity(t *testing.T) {
 						InsertStub: func(committedState *data.CommittedState) error {
 							return nil
 						},
+						WhereStatusStub: func(status data.Status) data.CommittedStatesQ {
+							return &stub.CommittedStatesQStub{
+								GetLatestStub: func() (*data.CommittedState, error) {
+									return &data.CommittedState{
+										ClaimsTreeRoot: []byte{235, 103, 37, 219, 83, 72, 67, 31, 122, 226, 128, 79, 67, 109, 249, 63, 122, 24, 185, 51, 54, 244, 182, 211, 240, 209, 86, 183, 5, 238, 134, 8},
+									}, nil
+								},
+							}
+						},
 					},
 				),
 			},
-			expected: expected{
-				identifier:       "11CXKewf72KmxkLXT2qtDfHktwohRYGZSkMHPjRU61",
-				authClaimHi:      "15202137672593991855011800751425397603931319918505833188991062670473684854109",
-				authClaimHv:      "2351654555892372227640888372176282444150254868378439619268573230312091195718",
-				currentStateHash: "69710065...",
+			beforeTest: func(t *testing.T, iden *Identity) {
+				hi, _ := new(big.Int).SetString("15202137672593991855011800751425397603931319918505833188991062670473684854109", 10)
+				hv, _ := new(big.Int).SetString("2351654555892372227640888372176282444150254868378439619268573230312091195718", 10)
+
+				err := iden.State.ClaimsTree.Add(context.Background(), hi, hv)
+				assert.Nil(t, err, "failed to add claim to claims tree: %s", err)
+			},
+			afterTest: func(t *testing.T, iden *Identity) {
+				stateHash, err := iden.State.GetCurrentStateHash()
+				assert.Nil(t, err, "failed to get current state hash: %s", err)
+
+				hi, hv, err := iden.AuthClaim.CoreClaim.HiHv()
+				assert.Nil(t, err, "failed to get hi and hv from auth claim: %s", err)
+
+				assert.Equal(t, "11CXKewf72KmxkLXT2qtDfHktwohRYGZSkMHPjRU61", iden.Identifier.String(), "identifier is not correct")
+				assert.Equal(t, "15202137672593991855011800751425397603931319918505833188991062670473684854109", hi.String(), "auth claim hi is not correct")
+				assert.Equal(t, "2351654555892372227640888372176282444150254868378439619268573230312091195718", hv.String(), "auth claim hv is not correct")
+				assert.Equal(t, "69710065...", stateHash.String(), "current state hash is not correct")
 			},
 		},
 		{
@@ -167,14 +191,21 @@ func TestIdentity_generateNewIdentity(t *testing.T) {
 						},
 					},
 					&stub.CommittedStatesQStub{
-						InsertStub: func(committedState *data.CommittedState) error {
-							return nil
+						WhereStatusStub: func(status data.Status) data.CommittedStatesQ {
+							return &stub.CommittedStatesQStub{
+								GetLatestStub: func() (*data.CommittedState, error) {
+									return &data.CommittedState{}, nil
+								},
+							}
 						},
 					},
 				),
 			},
-			expected: expected{
-				currentStateHash: "53173871...",
+			afterTest: func(t *testing.T, iden *Identity) {
+				stateHash, err := iden.State.GetCurrentStateHash()
+				assert.Nil(t, err, "failed to get current state hash: %s", err)
+
+				assert.Equal(t, "53173871...", stateHash.String(), "current state hash is not correct")
 			},
 		},
 		{
@@ -193,11 +224,15 @@ func TestIdentity_generateNewIdentity(t *testing.T) {
 						InsertStub: func(committedState *data.CommittedState) error {
 							return nil
 						},
+						WhereStatusStub: func(status data.Status) data.CommittedStatesQ {
+							return &stub.CommittedStatesQStub{
+								GetLatestStub: func() (*data.CommittedState, error) {
+									return &data.CommittedState{}, nil
+								},
+							}
+						},
 					},
 				),
-			},
-			expected: expected{
-				currentStateHash: "69710065...",
 			},
 		},
 		{
@@ -216,11 +251,21 @@ func TestIdentity_generateNewIdentity(t *testing.T) {
 						InsertStub: func(committedState *data.CommittedState) error {
 							return errors.New("test error")
 						},
+						WhereStatusStub: func(status data.Status) data.CommittedStatesQ {
+							return &stub.CommittedStatesQStub{
+								GetLatestStub: func() (*data.CommittedState, error) {
+									return &data.CommittedState{}, nil
+								},
+							}
+						},
 					},
 				),
 			},
-			expected: expected{
-				currentStateHash: "69710065...",
+			afterTest: func(t *testing.T, iden *Identity) {
+				stateHash, err := iden.State.GetCurrentStateHash()
+				assert.Nil(t, err, "failed to get current state hash: %s", err)
+
+				assert.Equal(t, "69710065...", stateHash.String(), "current state hash is not correct")
 			},
 		},
 	}
@@ -231,28 +276,17 @@ func TestIdentity_generateNewIdentity(t *testing.T) {
 				log:                  logan.New().Level(logan.FatalLevel),
 				State:                tt.fields.State,
 			}
+
+			if tt.beforeTest != nil {
+				tt.beforeTest(t, iden)
+			}
+
 			if err := iden.generateNewIdentity(context.Background()); (err != nil) != tt.wantErr {
 				t.Errorf("generateNewIdentity() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if tt.expected.identifier != "" {
-				stateHash, err := iden.State.GetCurrentStateHash()
-				assert.Nil(t, err, "failed to get current state hash: %s", err)
-
-				hi, hv, err := iden.AuthClaim.CoreClaim.HiHv()
-				assert.Nil(t, err, "failed to get hi and hv from auth claim: %s", err)
-
-				assert.Equal(t, tt.expected.identifier, iden.Identifier.String(), "identifier is not correct")
-				assert.Equal(t, tt.expected.authClaimHi, hi.String(), "auth claim hi is not correct")
-				assert.Equal(t, tt.expected.authClaimHv, hv.String(), "auth claim hv is not correct")
-				assert.Equal(t, tt.expected.currentStateHash, stateHash.String(), "current state hash is not correct")
-			}
-
-			if tt.expected.currentStateHash != "" {
-				stateHash, err := iden.State.GetCurrentStateHash()
-				assert.Nil(t, err, "failed to get current state hash: %s", err)
-
-				assert.Equal(t, tt.expected.currentStateHash, stateHash.String(), "current state hash is not correct")
+			if tt.afterTest != nil {
+				tt.afterTest(t, iden)
 			}
 		})
 	}
@@ -269,13 +303,6 @@ func TestIdentity_parseIdentity(t *testing.T) {
 		State                *state.IdentityState
 	}
 
-	type expected struct {
-		identifier       string
-		authClaimHi      string
-		authClaimHv      string
-		currentStateHash string
-	}
-
 	correctPrivateKey, err := ParseBJJPrivateKey(TestPrivateKey)
 	assert.Nil(t, err, "failed to parse correct private key: %s", err)
 
@@ -288,18 +315,32 @@ func TestIdentity_parseIdentity(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		fields   fields
-		args     args
-		wantErr  bool
-		expected expected
+		name       string
+		fields     fields
+		args       args
+		wantErr    bool
+		beforeTest func(t *testing.T, iden *Identity)
+		afterTest  func(t *testing.T, iden *Identity)
 	}{
 		{
 			name:    "everything is ok",
 			wantErr: false,
 			fields: fields{
 				babyJubJubPrivateKey: correctPrivateKey,
-				State:                NewTestState(t, &stub.ClaimsQStub{}, &stub.CommittedStatesQStub{}),
+				State: NewTestState(t,
+					&stub.ClaimsQStub{},
+					&stub.CommittedStatesQStub{
+						WhereStatusStub: func(status data.Status) data.CommittedStatesQ {
+							return &stub.CommittedStatesQStub{
+								GetLatestStub: func() (*data.CommittedState, error) {
+									return &data.CommittedState{
+										ClaimsTreeRoot: []byte{235, 103, 37, 219, 83, 72, 67, 31, 122, 226, 128, 79, 67, 109, 249, 63, 122, 24, 185, 51, 54, 244, 182, 211, 240, 209, 86, 183, 5, 238, 134, 8},
+									}, nil
+								},
+							}
+						},
+					},
+				),
 			},
 			args: args{
 				authClaim: &data.Claim{
@@ -312,11 +353,24 @@ func TestIdentity_parseIdentity(t *testing.T) {
 					ID: 1,
 				},
 			},
-			expected: expected{
-				identifier:       "115zTGHKvFeFLPu3vF9Wx2gBqnxGnzvTpmkHPM2diF",
-				authClaimHi:      "15202137672593991855011800751425397603931319918505833188991062670473684854109",
-				authClaimHv:      "2351654555892372227640888372176282444150254868378439619268573230312091195718",
-				currentStateHash: "53173871...",
+			beforeTest: func(t *testing.T, iden *Identity) {
+				hi, _ := new(big.Int).SetString("15202137672593991855011800751425397603931319918505833188991062670473684854109", 10)
+				hv, _ := new(big.Int).SetString("2351654555892372227640888372176282444150254868378439619268573230312091195718", 10)
+
+				err := iden.State.ClaimsTree.Add(context.Background(), hi, hv)
+				assert.Nil(t, err, "failed to add claim to claims tree: %s", err)
+			},
+			afterTest: func(t *testing.T, iden *Identity) {
+				stateHash, err := iden.State.GetCurrentStateHash()
+				assert.Nil(t, err, "failed to get current state hash: %s", err)
+
+				hi, hv, err := correctAuthCoreClaim.HiHv()
+				assert.Nil(t, err, "failed to get hi and hv from auth claim: %s", err)
+
+				assert.Equal(t, "115zTGHKvFeFLPu3vF9Wx2gBqnxGnzvTpmkHPM2diF", iden.Identifier.String(), "identifier is not correct")
+				assert.Equal(t, "15202137672593991855011800751425397603931319918505833188991062670473684854109", hi.String(), "auth claim hi is not correct")
+				assert.Equal(t, "2351654555892372227640888372176282444150254868378439619268573230312091195718", hv.String(), "auth claim hv is not correct")
+				assert.Equal(t, "69710065...", stateHash.String(), "current state hash is not correct")
 			},
 		},
 		{
@@ -335,8 +389,11 @@ func TestIdentity_parseIdentity(t *testing.T) {
 					ID: 1,
 				},
 			},
-			expected: expected{
-				currentStateHash: "53173871...",
+			afterTest: func(t *testing.T, iden *Identity) {
+				stateHash, err := iden.State.GetCurrentStateHash()
+				assert.Nil(t, err, "failed to get current state hash: %s", err)
+
+				assert.Equal(t, "53173871...", stateHash.String(), "current state hash is not correct")
 			},
 		},
 		{
@@ -352,8 +409,11 @@ func TestIdentity_parseIdentity(t *testing.T) {
 					ID: 1,
 				},
 			},
-			expected: expected{
-				currentStateHash: "53173871...",
+			afterTest: func(t *testing.T, iden *Identity) {
+				stateHash, err := iden.State.GetCurrentStateHash()
+				assert.Nil(t, err, "failed to get current state hash: %s", err)
+
+				assert.Equal(t, "53173871...", stateHash.String(), "current state hash is not correct")
 			},
 		},
 		{
@@ -372,8 +432,11 @@ func TestIdentity_parseIdentity(t *testing.T) {
 				},
 				genesisStateRaw: nil,
 			},
-			expected: expected{
-				currentStateHash: "53173871...",
+			afterTest: func(t *testing.T, iden *Identity) {
+				stateHash, err := iden.State.GetCurrentStateHash()
+				assert.Nil(t, err, "failed to get current state hash: %s", err)
+
+				assert.Equal(t, "53173871...", stateHash.String(), "current state hash is not correct")
 			},
 		},
 	}
@@ -384,28 +447,17 @@ func TestIdentity_parseIdentity(t *testing.T) {
 				log:                  logan.New().Level(logan.FatalLevel),
 				State:                tt.fields.State,
 			}
+
+			if tt.beforeTest != nil {
+				tt.beforeTest(t, iden)
+			}
+
 			if err := iden.parseIdentity(context.Background(), tt.args.authClaim, tt.args.genesisStateRaw); (err != nil) != tt.wantErr {
 				t.Errorf("parseIdentity() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if tt.expected.identifier != "" {
-				stateHash, err := iden.State.GetCurrentStateHash()
-				assert.Nil(t, err, "failed to get current state hash: %s", err)
-
-				hi, hv, err := iden.AuthClaim.CoreClaim.HiHv()
-				assert.Nil(t, err, "failed to get hi and hv from auth claim: %s", err)
-
-				assert.Equal(t, tt.expected.identifier, iden.Identifier.String(), "identifier is not correct")
-				assert.Equal(t, tt.expected.authClaimHi, hi.String(), "auth claim hi is not correct")
-				assert.Equal(t, tt.expected.authClaimHv, hv.String(), "auth claim hv is not correct")
-				assert.Equal(t, tt.expected.currentStateHash, stateHash.String(), "current state hash is not correct")
-			}
-
-			if tt.expected.currentStateHash != "" {
-				stateHash, err := iden.State.GetCurrentStateHash()
-				assert.Nil(t, err, "failed to get current state hash: %s", err)
-
-				assert.Equal(t, tt.expected.currentStateHash, stateHash.String(), "current state hash is not correct")
+			if tt.afterTest != nil {
+				tt.afterTest(t, iden)
 			}
 		})
 	}
@@ -432,10 +484,11 @@ func TestIdentity_saveAuthClaimModel(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name       string
+		fields     fields
+		args       args
+		wantErr    bool
+		beforeTest func(t *testing.T, iden *Identity)
 	}{
 		{
 			name:    "everything is ok",
@@ -448,9 +501,26 @@ func TestIdentity_saveAuthClaimModel(t *testing.T) {
 							return nil
 						},
 					},
-					&stub.CommittedStatesQStub{},
+					&stub.CommittedStatesQStub{
+						WhereStatusStub: func(status data.Status) data.CommittedStatesQ {
+							return &stub.CommittedStatesQStub{
+								GetLatestStub: func() (*data.CommittedState, error) {
+									return &data.CommittedState{
+										ClaimsTreeRoot: []byte{235, 103, 37, 219, 83, 72, 67, 31, 122, 226, 128, 79, 67, 109, 249, 63, 122, 24, 185, 51, 54, 244, 182, 211, 240, 209, 86, 183, 5, 238, 134, 8},
+									}, nil
+								},
+							}
+						},
+					},
 				),
 				Identifier: &correctIdentifier,
+			},
+			beforeTest: func(t *testing.T, iden *Identity) {
+				hi, _ := new(big.Int).SetString("15202137672593991855011800751425397603931319918505833188991062670473684854109", 10)
+				hv, _ := new(big.Int).SetString("2351654555892372227640888372176282444150254868378439619268573230312091195718", 10)
+
+				err := iden.State.ClaimsTree.Add(context.Background(), hi, hv)
+				assert.Nil(t, err, "failed to add claim to claims tree: %s", err)
 			},
 			args: args{
 				coreAuthClaim: correctAuthCoreClaim,
@@ -505,7 +575,15 @@ func TestIdentity_saveAuthClaimModel(t *testing.T) {
 							return errors.New("test error")
 						},
 					},
-					&stub.CommittedStatesQStub{},
+					&stub.CommittedStatesQStub{
+						WhereStatusStub: func(status data.Status) data.CommittedStatesQ {
+							return &stub.CommittedStatesQStub{
+								GetLatestStub: func() (*data.CommittedState, error) {
+									return &data.CommittedState{}, nil
+								},
+							}
+						},
+					},
 				),
 				Identifier: &correctIdentifier,
 			},
@@ -522,6 +600,11 @@ func TestIdentity_saveAuthClaimModel(t *testing.T) {
 				log:                  logan.New().Level(logan.FatalLevel),
 				State:                tt.fields.State,
 			}
+
+			if tt.beforeTest != nil {
+				tt.beforeTest(t, iden)
+			}
+
 			if err := iden.saveAuthClaimModel(context.Background(), tt.args.coreAuthClaim); (err != nil) != tt.wantErr {
 				t.Errorf("saveAuthClaimModel() error = %v, wantErr %v", err, tt.wantErr)
 			}
