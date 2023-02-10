@@ -65,7 +65,7 @@ func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *cor
 		Data:       authClaimData,
 	}
 
-	authClaim.MTP, err = iden.GenerateProof(ctx, coreAuthClaim, nil)
+	authClaim.MTP, err = iden.GenerateMTP(ctx, coreAuthClaim)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate proof")
 	}
@@ -104,7 +104,7 @@ func (iden *Identity) parseIdentity(
 		return errors.New("auth claim is nil")
 	}
 
-	authClaim.MTP, err = iden.GenerateProof(ctx, authClaim.CoreClaim.Claim, nil)
+	authClaim.MTP, err = iden.GenerateMTP(ctx, authClaim.CoreClaim.Claim)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate proof")
 	}

@@ -333,6 +333,8 @@ github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/iden3/go-circuits v0.1.0 h1:Ry/V1WlOuwPwGhIx/ZJJelz0Jx7h6g2cto6gui/0VWA=
 github.com/iden3/go-circuits v0.1.0/go.mod h1:pd69vG2pg8qvxYTbb7WHrZ41OF5bizgs5E/dkBggUag=
+github.com/iden3/go-iden3-core v0.1.0 h1:bsTRmigwDU9MtzPSjWyd+WL/ZnWGDRjDO4I0e99aJdo=
+github.com/iden3/go-iden3-core v0.1.0/go.mod h1:wJtcMK/bSazyW/JrQaRrbpUMgSMg79Pke3xgtfPxDnQ=
 github.com/iden3/go-iden3-core v1.0.0 h1:GNwuYOHZD7hiWjmW+wv26RW9f/JwF4lRQu7/55f2YB8=
 github.com/iden3/go-iden3-core v1.0.0/go.mod h1:wJtcMK/bSazyW/JrQaRrbpUMgSMg79Pke3xgtfPxDnQ=
 github.com/iden3/go-iden3-crypto v0.0.13 h1:ixWRiaqDULNyIDdOWz2QQJG5t4PpNHkQk2P6GV94cok=

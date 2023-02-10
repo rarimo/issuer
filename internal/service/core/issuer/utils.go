@@ -21,7 +21,7 @@ func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) error 
 		return errors.Wrap(err, "failed to create revocation check url")
 	}
 
-	isr.AuthClaim.MTP, err = isr.GenerateProof(ctx, isr.AuthClaim.CoreClaim.Claim, isr.State.ClaimsTree.Root())
+	isr.AuthClaim.MTP, err = isr.GenerateMTP(ctx, isr.AuthClaim.CoreClaim.Claim)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate auth claim inclusion proof")
 	}

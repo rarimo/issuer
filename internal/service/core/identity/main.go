@@ -33,7 +33,7 @@ func New(ctx context.Context, cfg config.Config) (*Identity, error) {
 		circuitsPath:         cfg.Identity().CircuitsPath,
 	}
 
-	err = identity.Init(ctx, cfg.Identity())
+	err = identity.Init(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to init Identity")
 	}
@@ -41,7 +41,7 @@ func New(ctx context.Context, cfg config.Config) (*Identity, error) {
 	return identity, nil
 }
 
-func (iden *Identity) Init(ctx context.Context, cfg *config.IdentityConfig) error {
+func (iden *Identity) Init(ctx context.Context) error {
 	genesisStateRaw, err := iden.State.CommittedStateQ.GetGenesis()
 	if err != nil {
 		return errors.Wrap(err, "failed to get genesis state")
