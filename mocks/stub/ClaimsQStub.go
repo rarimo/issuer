@@ -8,6 +8,7 @@ type ClaimsQStub struct {
 	GetAuthClaimStub    func() (*data.Claim, error)
 	GetBySchemaTypeStub func(schemaType string, userID string) (*data.Claim, error)
 	InsertStub          func(*data.Claim) error
+	UpdateStub          func(*data.Claim) error
 }
 
 func (m *ClaimsQStub) New() data.ClaimsQ {
@@ -28,4 +29,8 @@ func (m *ClaimsQStub) GetBySchemaType(schemaType string, userID string) (*data.C
 
 func (m *ClaimsQStub) Insert(claim *data.Claim) error {
 	return m.InsertStub(claim)
+}
+
+func (m *ClaimsQStub) Update(claim *data.Claim) error {
+	return m.UpdateStub(claim)
 }

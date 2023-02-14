@@ -14,6 +14,7 @@ type ClaimsQ interface {
 	GetAuthClaim() (*Claim, error)
 	GetBySchemaType(schemaType string, userID string) (*Claim, error)
 	Insert(*Claim) error
+	Update(*Claim) error
 }
 
 type Claim struct {

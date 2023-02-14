@@ -19,6 +19,7 @@ var (
 	ErrClaimRetrieverIsNotClaimOwner = errors.New("claim retriever is not claim owner")
 	ErrMessageRecipientIsNotIssuer   = errors.New("the message recipient is not an issuer")
 	ErrRepeatedCallbackRequest       = errors.New("repeated callback request")
+	ErrClaimIsAlreadyRevoked         = errors.New("claim is already revoked")
 )
 
 type issuer struct {

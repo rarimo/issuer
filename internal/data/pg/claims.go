@@ -51,6 +51,22 @@ func (q *claimsQ) Insert(claim *data.Claim) error {
 	return nil
 }
 
+func (q *claimsQ) Update(claim *data.Claim) error {
+	clauses := structs.Map(claim)
+	clauses[coreClaimColumnName] = claim.CoreClaim
+
+	err := q.db.Exec(
+		sq.Update(claimsTableName).
+			SetMap(clauses).
+			Where(sq.Eq{idColumnName: claim.ID}),
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to update rows")
+	}
+
+	return nil
+}
+
 func (q *claimsQ) Get(id uint64) (*data.Claim, error) {
 	var result data.Claim
 

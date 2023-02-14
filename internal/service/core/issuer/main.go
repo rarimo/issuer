@@ -22,14 +22,19 @@ type Issuer interface {
 	PublishStateOnChain(ctx context.Context) (string, error)
 	GetIdentifier() string
 	CreateClaimOffer(userID *core.ID, claimID string) (*protocol.CredentialsOfferMessage, error)
-	IssueClaim(ctx context.Context, userID *core.ID, expiration time.Time,
-		schemaType resources.ClaimSchemaType, schemaData []byte) (uint64, error)
+	IssueClaim(
+		ctx context.Context, userID *core.ID, expiration time.Time,
+		schemaType resources.ClaimSchemaType, schemaData []byte,
+	) (uint64, error)
 	OfferCallback(
 		ctx context.Context, request *requests.OfferCallbackRequest,
 	) (*protocol.CredentialIssuanceMessage, error)
 	GetRevocationStatus(
 		ctx context.Context, revID *big.Int,
 	) (*verifiable.RevocationStatus, error)
+	RevokeClaim(
+		ctx context.Context, userID *core.ID, schemaType resources.ClaimSchemaType,
+	) error
 }
 
 func New(ctx context.Context, cfg config.Config) (Issuer, error) {

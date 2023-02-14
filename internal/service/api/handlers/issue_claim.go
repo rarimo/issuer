@@ -20,7 +20,7 @@ func IssueClaim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claimID, err := Issuer(r).IssueClaim(r.Context(), req.UserID, req.Expiration, req.SchemaType, req.SchemaData)
+	claimID, err := Issuer(r).IssueClaim(r.Context(), req.UserID, req.Expiration, req.ClaimID, req.SchemaData)
 	switch {
 	case errors.Is(err, schemas.ErrValidationData):
 		Log(r).WithField("reason", err).Debug("Bad request")
@@ -32,7 +32,7 @@ func IssueClaim(w http.ResponseWriter, r *http.Request) {
 		return
 	case err != nil:
 		Log(r).WithError(err).
-			WithField("schema-type", req.SchemaType).
+			WithField("schema-type", req.ClaimID).
 			WithField("schema-data", string(req.SchemaData)).
 			WithField("user-id", req.UserID).
 			Error("Failed to issue claim")

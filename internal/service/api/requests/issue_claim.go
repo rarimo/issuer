@@ -15,7 +15,7 @@ import (
 
 type IssueClaimRequest struct {
 	UserID     *core.ID
-	SchemaType claimResources.ClaimSchemaType
+	ClaimID    claimResources.ClaimSchemaType
 	Expiration time.Time
 	SchemaData []byte
 }
@@ -122,7 +122,7 @@ func (req *issueClaimRequestRaw) parse() *IssueClaimRequest {
 	return &IssueClaimRequest{
 		Expiration: expiration,
 		UserID:     userID,
-		SchemaType: claimResources.ClaimSchemaTypeList[req.ClaimID],
+		ClaimID:    claimResources.ClaimSchemaTypeList[req.ClaimID],
 		SchemaData: schemaDataTrimmed,
 	}
 }
