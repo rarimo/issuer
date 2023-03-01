@@ -38,7 +38,7 @@ func (isr *issuer) CreateClaimOffer(
 	}
 
 	claimOffer := claims.NewClaimOffer(
-		fmt.Sprint(isr.domain, ClaimIssueCallBackPath), isr.Identifier, userID, claim,
+		fmt.Sprint(isr.baseURL, ClaimIssueCallBackPath), isr.Identifier, userID, claim,
 	)
 
 	claimOfferRaw := claims.ClaimOfferToRaw(claimOffer, time.Now())
@@ -53,11 +53,11 @@ func (isr *issuer) CreateClaimOffer(
 func (isr *issuer) IssueClaim(
 	ctx context.Context,
 	userID *core.ID,
-	expiration time.Time,
+	expiration *time.Time,
 	schemaType resources.ClaimSchemaType,
-	schemaData []byte,
+	credentialRaw []byte,
 ) (uint64, error) {
-	claim, err := isr.compactClaim(ctx, userID, expiration, schemaType, schemaData)
+	claim, err := isr.compactClaim(ctx, userID, expiration, schemaType, credentialRaw)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to compact the requested claim")
 	}
@@ -109,7 +109,7 @@ func (isr *issuer) OfferCallback(
 		return nil, errors.Wrap(err, "failed to generate mtp")
 	}
 
-	cred, err := claims.ClaimModelToIden3Credential(claim)
+	cred, err := claims.ClaimModelToW3Credential(claim, isr.GetIdentifier())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create iden3 credential from claim model")
 	}
@@ -158,9 +158,9 @@ func (isr *issuer) GetRevocationStatus(
 		MTP: *mtp,
 		Issuer: struct {
 			State              *string `json:"state,omitempty"`
-			RootOfRoots        *string `json:"root_of_roots,omitempty"`
-			ClaimsTreeRoot     *string `json:"claims_tree_root,omitempty"`
-			RevocationTreeRoot *string `json:"revocation_tree_root,omitempty"`
+			RootOfRoots        *string `json:"rootOfRoots,omitempty"`
+			ClaimsTreeRoot     *string `json:"claimsTreeRoot,omitempty"`
+			RevocationTreeRoot *string `json:"revocationTreeRoot,omitempty"`
 		}{
 			State:              strptr(stateHash.Hex()),
 			RevocationTreeRoot: strptr(lastCommittedState.RevocationsTreeRoot.Hex()),

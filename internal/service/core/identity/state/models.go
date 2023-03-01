@@ -6,7 +6,7 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/config"
@@ -21,6 +21,7 @@ const (
 
 var (
 	ErrStateWasntChanged = errors.New("state was not changed")
+	ErrOldStateNotFound  = errors.New("old state not found")
 )
 
 type IdentityState struct {

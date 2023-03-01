@@ -8,6 +8,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/schemas"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
 )
 
@@ -60,8 +61,8 @@ func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *cor
 
 	authClaim := &data.Claim{
 		CoreClaim:  data.NewCoreClaim(coreAuthClaim),
-		SchemaURL:  claims.AuthBJJCredentialSchemaURL,
-		SchemaType: claims.AuthBJJCredentialSchemaType,
+		SchemaURL:  schemas.AuthBJJCredentialSchemaURL,
+		SchemaType: claims.AuthBJJCredentialClaimType,
 		Data:       authClaimData,
 	}
 

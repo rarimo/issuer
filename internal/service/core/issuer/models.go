@@ -26,5 +26,5 @@ type issuer struct {
 	schemaBuilder       *schemas.Builder
 	claimsOffersQ       data.ClaimsOffersQ
 	authVerificationKey []byte
-	domain              string
+	baseURL             string
 }

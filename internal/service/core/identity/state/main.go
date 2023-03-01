@@ -6,7 +6,7 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data/pg"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
@@ -104,12 +104,7 @@ func (is *IdentityState) AddClaimMT(claim *core.Claim) error {
 }
 
 func (is *IdentityState) SetupGenesis(publicKey *babyjub.PublicKey) (*core.ID, *core.Claim, error) {
-	schemaHash, err := core.NewSchemaHashFromHex(claims.AuthBJJCredentialHash)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to load the schema hash from hex")
-	}
-
-	authClaim, err := claims.NewAuthClaim(publicKey, schemaHash)
+	authClaim, err := claims.NewAuthClaim(publicKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to crate new auth claim")
 	}

@@ -41,7 +41,7 @@ func (iden *Identity) GenerateMTP(
 		Type: verifiable.Iden3SparseMerkleProofType,
 		MTP:  inclusionProof,
 		IssuerData: verifiable.IssuerData{
-			ID: iden.Identifier,
+			ID: iden.Identifier.String(),
 			State: verifiable.State{
 				RootOfRoots:        strToPtr(lastCommittedState.RootsTreeRoot.Hex()),
 				ClaimsTreeRoot:     strToPtr(lastCommittedState.ClaimsTreeRoot.Hex()),

@@ -1,25 +1,31 @@
 package schemas
 
 import (
-	"net/url"
+	"time"
 
+	jsonSuite "github.com/iden3/go-schema-processor/json"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
 const (
-	httpProtocolName  = "http"
-	httpsProtocolName = "https"
-	ipfsProtocolName  = "ipfs"
-
-	SchemaFormatJSONLD = "json-ld"
-	SchemaFormatJSON   = "json"
+	AuthBJJCredentialSchemaURL = "https://schema.iden3.io/core/jsonld/auth.jsonld#AuthBJJCredential" //nolint
 )
 
 var (
-	ErrSchemaFormatIsNotSupported = errors.New("schema format is not supported")
-	ErrValidationData             = errors.New("data is not valid for requested schema")
+	ErrValidationData = errors.New("data is not valid for requested schema")
 )
 
 type Builder struct {
-	ipfsURL *url.URL
+	CachedSchemas map[string]Schema
+}
+
+type Schema struct {
+	Raw           []byte
+	Body          jsonSuite.Schema
+	JSONLdContext string
+}
+
+type CompactClaimOptions struct {
+	Expiration *time.Time
+	Version    uint32
 }

@@ -2,155 +2,105 @@ package schemas
 
 import (
 	"context"
-	"encoding/hex"
-	"net/url"
+	"encoding/json"
+	"fmt"
 
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/iden3/go-schema-processor/json"
-	jsonld "github.com/iden3/go-schema-processor/json-ld"
+	core "github.com/iden3/go-iden3-core"
+	jsonSuite "github.com/iden3/go-schema-processor/json"
 	"github.com/iden3/go-schema-processor/loaders"
 	"github.com/iden3/go-schema-processor/processor"
+	"github.com/iden3/go-schema-processor/utils"
+	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/pkg/errors"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
+	resources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
-func NewBuilder(ipfsURL string) (*Builder, error) {
-	parsedIPFSURL, err := url.Parse(ipfsURL)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse ipfs url")
+func NewBuilder(ctx context.Context) (*Builder, error) {
+	builder := &Builder{
+		CachedSchemas: map[string]Schema{},
 	}
 
-	return &Builder{
-		ipfsURL: parsedIPFSURL,
-	}, nil
+	if err := builder.loadSchemas(ctx); err != nil {
+		return nil, errors.Wrap(err, "failed to load schemas")
+	}
+
+	return builder, nil
 }
 
-func (b *Builder) Process(
+func (b *Builder) loadSchemas(ctx context.Context) error {
+	for _, schema := range resources.ClaimSchemaList {
+		schemaBytes, _, err := (&loaders.HTTP{
+			URL: schema.ClaimSchemaURL,
+		}).Load(ctx)
+		if err != nil {
+			return errors.Wrap(err, "failed to load schema")
+		}
+
+		var parsedSchema jsonSuite.Schema
+		if err = json.Unmarshal(schemaBytes, &parsedSchema); err != nil {
+			return errors.Wrap(err, "failed to parse schema")
+		}
+
+		jsonLdContext, ok := parsedSchema.Metadata.Uris["jsonLdContext"].(string)
+		if !ok {
+			return errors.New("failed to get jsonLdContext from schema")
+		}
+
+		b.CachedSchemas[schema.ClaimSchemaName] = Schema{
+			Raw:           schemaBytes,
+			Body:          parsedSchema,
+			JSONLdContext: jsonLdContext,
+		}
+	}
+
+	return nil
+}
+
+func (b *Builder) CreateCoreClaim(
 	ctx context.Context,
-	data []byte,
-	schemaType string,
-	schemaURLRaw string,
-) (*processor.ParsedSlots, string, error) {
-	schemaURL, err := url.Parse(schemaURLRaw)
-	if err != nil {
-		return nil, "", errors.Wrap(err, "failed to parse schema url")
+	schemaType resources.ClaimSchemaType,
+	credential *verifiable.W3CCredential,
+	revNonce uint64,
+) (*core.Claim, error) {
+	parseOptions := &processor.CoreClaimOptions{
+		RevNonce:        revNonce,
+		Updatable:       false,
+		SubjectPosition: claims.SubjectPositionIndex,
+		MerklizedRootPosition: claims.DefineMerklizedRootPosition(
+			b.CachedSchemas[schemaType.ToRaw()].Body.Metadata,
+			utils.MerklizedRootPositionValue,
+		),
 	}
 
-	slots, schemaBytes, err := b.getParsedSlots(ctx, schemaURL, schemaType, data)
-	if err != nil {
-		return nil, "", errors.Wrap(err, "failed to get parsed slots from schema data")
-	}
-
-	return slots, b.createSchemaHash(schemaBytes, schemaType), nil
-}
-
-// nolint
-func (b *Builder) load(ctx context.Context, schemaURL *url.URL) (schema []byte, err error) {
-	loader, err := b.getLoader(schemaURL)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get schema loader")
-	}
-
-	var schemaBytes []byte
-	schemaBytes, _, err = loader.Load(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load schema")
-	}
-
-	return schemaBytes, nil
-}
-
-func (b *Builder) getParsedSlots(
-	ctx context.Context,
-	schemaURL *url.URL,
-	schemaType string,
-	dataBytes []byte,
-) (*processor.ParsedSlots, []byte, error) {
-	loader, err := b.getLoader(schemaURL)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to get schema loader")
-	}
-
-	schema, schemaFormat, err := loader.Load(ctx)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to load the schema")
-	}
-
-	schemaProcessor, err := newSchemaProcessor(schemaType, schemaFormat, loader)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to create new schema processor")
-	}
-
-	err = schemaProcessor.ValidateData(dataBytes, schema)
-	if err != nil {
-		return nil, nil, errors.Wrap(ErrValidationData, err.Error())
-	}
-
-	schemaSlots, err := schemaProcessor.ParseSlots(dataBytes, schema)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to parse the schema slots")
-	}
-
-	return &schemaSlots, schema, nil
-}
-
-func (b *Builder) getLoader(schemaURL *url.URL) (processor.SchemaLoader, error) {
-	switch schemaURL.Scheme {
-	case httpProtocolName, httpsProtocolName:
-		return &loaders.HTTP{
-			URL: schemaURL.String(),
-		}, nil
-	case ipfsProtocolName:
-		return loaders.IPFS{
-			URL: schemaURL.String(),
-			CID: schemaURL.Host,
-		}, nil
-	default:
-		return nil, errors.New("protocol is invalid or not supported")
-	}
-}
-
-func newSchemaProcessor(
-	schemaType string,
-	schemaFormat string,
-	loader processor.SchemaLoader,
-) (*processor.Processor, error) {
-	switch schemaFormat {
-	case SchemaFormatJSON:
-		return newJSONSchemaProcessor(schemaType, loader), nil
-	case SchemaFormatJSONLD:
-		return newJSONldSchemaProcessor(schemaType, loader), nil
-	default:
-		return nil, ErrSchemaFormatIsNotSupported
-	}
-}
-
-func newJSONldSchemaProcessor(schemaType string, loader processor.SchemaLoader) *processor.Processor {
-	return processor.InitProcessorOptions(
+	claimsProcessor := processor.InitProcessorOptions(
 		&processor.Processor{},
-		processor.WithValidator(jsonld.Validator{
-			ClaimType: schemaType,
-		}),
-		processor.WithParser(jsonld.Parser{
-			ClaimType:       schemaType,
-			ParsingStrategy: processor.SlotFullfilmentStrategy,
-		}),
-		processor.WithSchemaLoader(loader),
+		processor.WithValidator(jsonSuite.Validator{}),
+		processor.WithParser(jsonSuite.Parser{}),
 	)
-}
 
-func newJSONSchemaProcessor(schemaType string, loader processor.SchemaLoader) *processor.Processor {
-	return processor.InitProcessorOptions(
-		&processor.Processor{},
-		processor.WithValidator(json.Validator{}),
-		processor.WithParser(jsonld.Parser{
-			ClaimType:       schemaType,
-			ParsingStrategy: processor.SlotFullfilmentStrategy,
-		}),
-		processor.WithSchemaLoader(loader),
+	jsonCredential, err := json.Marshal(credential)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal verifiable credential")
+	}
+
+	fmt.Println(string(jsonCredential))
+
+	err = claimsProcessor.ValidateData(jsonCredential, b.CachedSchemas[schemaType.ToRaw()].Raw)
+	if err != nil {
+		return nil, errors.Wrap(ErrValidationData, err.Error())
+	}
+
+	coreClaim, err := claimsProcessor.ParseClaim(
+		ctx,
+		*credential,
+		resources.ClaimSchemaList[schemaType].ClaimSchemaName,
+		b.CachedSchemas[schemaType.ToRaw()].Raw,
+		parseOptions,
 	)
-}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse the schema slots")
+	}
 
-func (b *Builder) createSchemaHash(schemaBytes []byte, credentialType string) string {
-	schemaHash := crypto.Keccak256(schemaBytes, []byte(credentialType))
-	return hex.EncodeToString(schemaHash[len(schemaHash)-16:])
+	return coreClaim, nil
 }

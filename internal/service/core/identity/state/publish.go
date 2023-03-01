@@ -11,7 +11,7 @@ import (
 	"github.com/iden3/go-circuits"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/poseidon"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/iden3/go-rapidsnark/prover"
 	"github.com/iden3/go-rapidsnark/witness"
 	"github.com/pkg/errors"
@@ -63,25 +63,20 @@ func (is *IdentityState) prepareTransitionInfo(
 	ctx context.Context,
 	identityInfo *IdentityInfo,
 ) (*publisher.StateTransitionInfo, error) {
-	latestStateRaw, err := is.CommittedStateQ.New().WhereStatus(dataPkg.StatusCompleted).GetLatest()
+	oldStateRaw, err := is.CommittedStateQ.New().WhereStatus(dataPkg.StatusCompleted).GetLatest()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the last committed state from db")
 	}
-	if latestStateRaw == nil {
-		return nil, errors.New("the latest state is absent")
+	if oldStateRaw == nil {
+		return nil, ErrOldStateNotFound
 	}
 
-	latestState, err := CommittedStateFromRaw(latestStateRaw)
+	oldState, err := CommittedStateFromRaw(oldStateRaw)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse the latest committed state")
 	}
 
-	transitionInputs, err := is.prepareTransitionInputs(ctx, identityInfo, latestState)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to prepare state transition inputs")
-	}
-
-	latestStateHash, err := latestState.StateHash()
+	oldStateHash, err := oldState.StateHash()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get latest committed state hash")
 	}
@@ -91,10 +86,15 @@ func (is *IdentityState) prepareTransitionInfo(
 		return nil, errors.Wrap(err, "failed to get the new state hash")
 	}
 
-	if latestStateHash.Equals(newStateHash) ||
-		(latestState.ClaimsTreeRoot.Equals(is.ClaimsTree.Root()) &&
-			latestState.RevocationsTreeRoot.Equals(is.RevocationsTree.Root())) {
+	if oldStateHash.Equals(newStateHash) ||
+		(oldState.ClaimsTreeRoot.Equals(is.ClaimsTree.Root()) &&
+			oldState.RevocationsTreeRoot.Equals(is.RevocationsTree.Root())) {
 		return nil, ErrStateWasntChanged
+	}
+
+	transitionInputs, err := is.prepareTransitionInputs(ctx, identityInfo, oldState, newStateHash)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to prepare state transition inputs")
 	}
 
 	transitionProof, err := is.generateTransitionProof(transitionInputs)
@@ -104,9 +104,9 @@ func (is *IdentityState) prepareTransitionInfo(
 
 	return &publisher.StateTransitionInfo{
 		Identifier:        identityInfo.Identifier,
-		LatestState:       latestStateHash,
+		LatestState:       oldStateHash,
 		NewState:          newStateHash,
-		IsOldStateGenesis: latestState.IsGenesis,
+		IsOldStateGenesis: oldState.IsGenesis,
 		ZKProof:           transitionProof.Proof,
 	}, nil
 }
@@ -114,55 +114,60 @@ func (is *IdentityState) prepareTransitionInfo(
 func (is *IdentityState) prepareTransitionInputs(
 	ctx context.Context,
 	identityInfo *IdentityInfo,
-	latestState *CommittedState,
+	oldState *CommittedState,
+	newStateHash *merkletree.Hash,
 ) ([]byte, error) {
-	oldState, err := circuitsState(latestState)
+	oldStateCircuits, err := circuitsState(oldState)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get circuit state")
 	}
 
-	err = is.RootsTree.Add(ctx, latestState.ClaimsTreeRoot.BigInt(), merkletree.HashZero.BigInt())
+	err = is.RootsTree.Add(ctx, oldState.ClaimsTreeRoot.BigInt(), merkletree.HashZero.BigInt())
 	if err != nil && !errors.Is(err, merkletree.ErrEntryIndexAlreadyExists) {
 		return nil, errors.Wrap(err, "failed to add new claim tree root to the roots tree")
 	}
 
-	newStateHash, err := is.GetCurrentStateHash()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get current state hash")
+	newStateCircuits := circuits.TreeState{
+		State:          newStateHash,
+		ClaimsRoot:     is.ClaimsTree.Root(),
+		RevocationRoot: is.RevocationsTree.Root(),
+		RootOfRoots:    is.RootsTree.Root(),
 	}
 
-	authClaimInclusionProof, err := is.GetInclusionProof(ctx, identityInfo.AuthClaim, latestState.ClaimsTreeRoot)
+	authInclusionProof, err := is.GetInclusionProof(ctx, identityInfo.AuthClaim, oldState.ClaimsTreeRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the auth claim inclusion proof")
 	}
 
-	authNonRevocationProof, err := is.GetRevocationProof(ctx, identityInfo.AuthClaim, latestState.RevocationsTreeRoot)
+	authNewInclusionProof, err := is.GetInclusionProof(ctx, identityInfo.AuthClaim, newStateCircuits.ClaimsRoot)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get the auth claim new inclusion proof")
+	}
+
+	authNonRevocationProof, _, err := is.RevocationsTree.GenerateProof(
+		ctx,
+		big.NewInt(int64(identityInfo.AuthClaim.GetRevocationNonce())),
+		oldState.RevocationsTreeRoot,
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the auth claim non revocation proof")
 	}
 
-	authClaimWithProofs := circuits.Claim{
-		Claim:     identityInfo.AuthClaim,
-		TreeState: *oldState,
-		Proof:     authClaimInclusionProof,
-		NonRevProof: &circuits.ClaimNonRevStatus{
-			TreeState: *oldState,
-			Proof:     authNonRevocationProof,
-		},
-	}
-
-	hashOldAndNewStates, err := poseidon.Hash([]*big.Int{oldState.State.BigInt(), newStateHash.BigInt()})
+	hashOldAndNewStates, err := poseidon.Hash([]*big.Int{oldStateCircuits.State.BigInt(), newStateHash.BigInt()})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get poseidon hash")
 	}
 
 	transitionInputs, err := circuits.StateTransitionInputs{
-		ID:                identityInfo.Identifier,
-		NewState:          newStateHash,
-		OldTreeState:      *oldState,
-		IsOldStateGenesis: latestState.IsGenesis,
-		AuthClaim:         authClaimWithProofs,
-		Signature:         identityInfo.BabyJubJubPrivateKey.SignPoseidon(hashOldAndNewStates),
+		ID:                      identityInfo.Identifier,
+		NewTreeState:            newStateCircuits,
+		OldTreeState:            oldStateCircuits,
+		IsOldStateGenesis:       oldState.IsGenesis,
+		AuthClaim:               identityInfo.AuthClaim,
+		AuthClaimIncMtp:         authInclusionProof,
+		AuthClaimNonRevMtp:      authNonRevocationProof,
+		AuthClaimNewStateIncMtp: authNewInclusionProof,
+		Signature:               identityInfo.BabyJubJubPrivateKey.SignPoseidon(hashOldAndNewStates),
 	}.InputsMarshal()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal state transition inputs")
@@ -189,31 +194,13 @@ func (is *IdentityState) GetInclusionProof(
 	return proof, nil
 }
 
-func (is *IdentityState) GetRevocationProof(
-	ctx context.Context,
-	claim *core.Claim,
-	revocationsTreeRoot *merkletree.Hash,
-) (*merkletree.Proof, error) {
-	hi, err := claim.HIndex()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get hash of index of the claim")
-	}
-
-	proof, _, err := is.RevocationsTree.GenerateProof(ctx, hi, revocationsTreeRoot)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate a proof")
-	}
-
-	return proof, nil
-}
-
-func circuitsState(committedState *CommittedState) (*circuits.TreeState, error) {
+func circuitsState(committedState *CommittedState) (circuits.TreeState, error) {
 	stateHash, err := committedState.StateHash()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get state hash")
+		return circuits.TreeState{}, errors.Wrap(err, "failed to get state hash")
 	}
 
-	return &circuits.TreeState{
+	return circuits.TreeState{
 		State:          stateHash,
 		ClaimsRoot:     committedState.ClaimsTreeRoot,
 		RevocationRoot: committedState.RevocationsTreeRoot,

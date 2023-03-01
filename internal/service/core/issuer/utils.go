@@ -2,21 +2,16 @@ package issuer
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iden3/go-jwz"
-	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/pkg/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity"
 )
 
-func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) error {
-	_, checkRevLink, err := claims.GetCheckClaimRevLink(
-		isr.domain,
-		claim.CoreClaim.GetRevocationNonce(),
-		verifiable.SparseMerkleTreeProof,
-	)
+func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) (err error) {
 	if err != nil {
 		return errors.Wrap(err, "failed to create revocation check url")
 	}
@@ -26,7 +21,10 @@ func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) error 
 		return errors.Wrap(err, "failed to generate auth claim inclusion proof")
 	}
 
-	claim.SignatureProof, err = isr.signClaim(claim.CoreClaim.Claim, checkRevLink)
+	claim.SignatureProof, err = isr.signClaim(
+		claim.CoreClaim.Claim,
+		fmt.Sprint(isr.baseURL, claims.CredentialStatusCheckURL, claim.CoreClaim.GetRevocationNonce()),
+	)
 	if err != nil {
 		return errors.Wrap(err, "failed to get signature proof")
 	}

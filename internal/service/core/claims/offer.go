@@ -51,13 +51,8 @@ func ClaimOfferToRaw(claimOffer *protocol.CredentialsOfferMessage, createdAt tim
 	return &claimOfferRaw
 }
 
-func ClaimModelToIden3Credential(claim *data.Claim) (*verifiable.Iden3Credential, error) {
-	claimIDPosition, err := getClaimIDPosition(claim.CoreClaim.Claim)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get claim id position")
-	}
-
-	credentialData, err := compactCredentialData(claim)
+func ClaimModelToW3Credential(claim *data.Claim, issuer string) (*verifiable.W3CCredential, error) {
+	credentialSubject, err := compactCredentialSubject(claim)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to compact credential subject")
 	}
@@ -74,32 +69,33 @@ func ClaimModelToIden3Credential(claim *data.Claim) (*verifiable.Iden3Credential
 		}
 	}
 
-	res := &verifiable.Iden3Credential{
-		ID:        fmt.Sprint(claim.ID),
-		Type:      []string{Iden3CredentialSchemaType},
-		RevNonce:  claim.CoreClaim.GetRevocationNonce(),
-		Updatable: claim.CoreClaim.GetFlagUpdatable(),
-		Version:   claim.CoreClaim.GetVersion(),
+	res := &verifiable.W3CCredential{
+		ID: fmt.Sprint(claim.ID),
 		Context: []string{
-			resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaURL,
+			verifiable.JSONLDSchemaW3CCredential2018,
+			verifiable.JSONLDSchemaIden3Credential,
 			claim.SchemaURL,
 		},
+		Type: []string{
+			verifiable.TypeW3CVerifiableCredential,
+			claim.SchemaType,
+		},
+		CredentialSubject: credentialSubject,
+		CredentialStatus:  credentialStatus,
+		Issuer:            issuer,
 		CredentialSchema: struct {
-			ID   string `json:"@id"`
+			ID   string `json:"id"`
 			Type string `json:"type"`
 		}{
 			ID:   claim.SchemaURL,
 			Type: resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName,
 		},
-		SubjectPosition:   claimIDPosition,
-		CredentialSubject: credentialData,
-		Proof:             proofs,
-		CredentialStatus:  credentialStatus,
+		Proof: proofs,
 	}
 
 	expiration, ok := claim.CoreClaim.GetExpirationDate()
 	if ok {
-		res.Expiration = expiration
+		res.Expiration = &expiration
 	}
 
 	return res, nil
@@ -121,8 +117,8 @@ func getClaimIDPosition(claim *core.Claim) (string, error) {
 	}
 }
 
-func compactProofs(claim *data.Claim) ([]interface{}, error) {
-	proofs := make([]interface{}, 0)
+func compactProofs(claim *data.Claim) (verifiable.CredentialProofs, error) {
+	proofs := verifiable.CredentialProofs{}
 
 	signatureProof := &verifiable.BJJSignatureProof2021{}
 	if claim.SignatureProof != nil {
@@ -145,21 +141,21 @@ func compactProofs(claim *data.Claim) ([]interface{}, error) {
 	return proofs, nil
 }
 
-func compactCredentialData(claim *data.Claim) (map[string]interface{}, error) {
+func compactCredentialSubject(claim *data.Claim) (map[string]interface{}, error) {
 	subjectID, err := claim.CoreClaim.GetID()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get subject id")
 	}
 
-	credentialData := make(map[string]interface{})
-	if err := json.Unmarshal(claim.Data, &credentialData); err != nil {
+	credentialSubject := make(map[string]interface{})
+	if err := json.Unmarshal(claim.Data, &credentialSubject); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal credential subject")
 	}
 
-	credentialData["type"] = resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName
+	credentialSubject["type"] = resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName
 	if len(subjectID.String()) > 0 {
-		credentialData["id"] = subjectID.String()
+		credentialSubject["id"] = subjectID.String()
 	}
 
-	return credentialData, nil
+	return credentialSubject, nil
 }

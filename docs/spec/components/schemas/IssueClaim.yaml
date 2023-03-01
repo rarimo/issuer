@@ -8,10 +8,10 @@ allOf:
       attributes:
         type: object
         required:
-          - schema_data
+          - credential
           - expiration
         properties:
-          schema_data:
+          credential:
             oneOf:
               - $ref: '#/components/schemas/KYCFullNameCredentialsSchema'
               - $ref: '#/components/schemas/QDAOMembership'

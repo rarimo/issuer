@@ -12,8 +12,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql"
-	"github.com/iden3/go-merkletree-sql/db/memory"
+	"github.com/iden3/go-merkletree-sql/v2"
+	"github.com/iden3/go-merkletree-sql/v2/db/memory"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -27,37 +27,21 @@ const (
 	TestPrivateKey = "0x819b6b1176c547655f9fed5589eaaf1ef4a32aab9b46a4190d13d5c81a822117"
 )
 
-func NewAuthCoreClaim(publicKey *babyjub.PublicKey) (*core.Claim, error) {
-	schemaHash, err := core.NewSchemaHashFromHex(claims.AuthBJJCredentialHash)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load the schema hash from hex")
-	}
-
-	authClaim, err := claims.NewAuthClaim(publicKey, schemaHash)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to crate new auth claim")
-	}
-
-	return authClaim, nil
-}
-
 func NewTestState(t *testing.T, claimsQStub data.ClaimsQ, committedStateQStub data.CommittedStatesQ) *state.IdentityState {
-	memStorage := memory.NewMemoryStorage()
-
 	// initializing new claims tree (it stores claims issued by the user)
-	claimsTree, err := merkletree.NewMerkleTree(context.Background(), memStorage.WithPrefix([]byte("claims")), 64)
+	claimsTree, err := merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 64)
 	if err != nil {
 		assert.Fail(t, "failed to init claims tree: %s", err)
 	}
 
 	// initializing new revocation tree (it stores revocation ids of the claims that was revoked)
-	revocationsTree, err := merkletree.NewMerkleTree(context.Background(), memStorage.WithPrefix([]byte("revocations")), 64)
+	revocationsTree, err := merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 64)
 	if err != nil {
 		assert.Fail(t, "failed to init revocations tree: %s", err)
 	}
 
 	//initializing new roots tree (it stores the all on-chain published claims-tree roots)
-	rootsTree, err := merkletree.NewMerkleTree(context.Background(), memStorage.WithPrefix([]byte("roots")), 64)
+	rootsTree, err := merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 64)
 	if err != nil {
 		assert.Fail(t, "failed to init roots tree: %s", err)
 	}
@@ -291,7 +275,7 @@ func TestIdentity_parseIdentity(t *testing.T) {
 	correctPrivateKey, err := ParseBJJPrivateKey(TestPrivateKey)
 	assert.Nil(t, err, "failed to parse correct private key: %s", err)
 
-	correctAuthCoreClaim, err := NewAuthCoreClaim(correctPrivateKey.Public())
+	correctAuthCoreClaim, err := claims.NewAuthClaim(correctPrivateKey.Public())
 	assert.Nil(t, err, "failed to create auth core claim: %s", err)
 
 	type args struct {
@@ -460,7 +444,7 @@ func TestIdentity_saveAuthClaimModel(t *testing.T) {
 	correctPrivateKey, err := ParseBJJPrivateKey(TestPrivateKey)
 	assert.Nil(t, err, "failed to parse correct private key: %s", err)
 
-	correctAuthCoreClaim, err := NewAuthCoreClaim(correctPrivateKey.Public())
+	correctAuthCoreClaim, err := claims.NewAuthClaim(correctPrivateKey.Public())
 	assert.Nil(t, err, "failed to create auth core claim: %s", err)
 
 	correctIdentifier, err := core.IDFromString("11CXKewf72KmxkLXT2qtDfHktwohRYGZSkMHPjRU61")
@@ -795,7 +779,7 @@ func TestIdentity_Init(t *testing.T) {
 	correctPrivateKey, err := ParseBJJPrivateKey(TestPrivateKey)
 	assert.Nil(t, err, "failed to parse correct private key: %s", err)
 
-	authCoreClaim, err := NewAuthCoreClaim(correctPrivateKey.Public())
+	authCoreClaim, err := claims.NewAuthClaim(correctPrivateKey.Public())
 	assert.Nil(t, err, "failed to create auth core claim: %s", err)
 
 	type fields struct {

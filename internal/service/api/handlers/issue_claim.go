@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
@@ -20,7 +20,7 @@ func IssueClaim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claimID, err := Issuer(r).IssueClaim(r.Context(), req.UserID, req.Expiration, req.SchemaType, req.SchemaData)
+	claimID, err := Issuer(r).IssueClaim(r.Context(), req.UserID, &req.Expiration, req.SchemaType, req.Credential)
 	switch {
 	case errors.Is(err, schemas.ErrValidationData):
 		Log(r).WithField("reason", err).Debug("Bad request")
@@ -33,7 +33,7 @@ func IssueClaim(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		Log(r).WithError(err).
 			WithField("schema-type", req.SchemaType).
-			WithField("schema-data", string(req.SchemaData)).
+			WithField("schema-data", string(req.Credential)).
 			WithField("user-id", req.UserID).
 			Error("Failed to issue claim")
 		ape.RenderErr(w, problems.InternalError())

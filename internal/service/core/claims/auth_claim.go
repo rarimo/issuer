@@ -8,14 +8,14 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func NewAuthClaim(publicKey *babyjub.PublicKey, schemaHash core.SchemaHash) (*core.Claim, error) {
+func NewAuthClaim(publicKey *babyjub.PublicKey) (*core.Claim, error) {
 	revNonce, err := CryptoRandUint64()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate random uint64")
 	}
 
 	claim, err := core.NewClaim(
-		schemaHash,
+		core.AuthSchemaHash,
 		core.WithIndexDataInts(publicKey.X, publicKey.Y),
 		core.WithRevocationNonce(revNonce),
 	)

@@ -7,8 +7,7 @@ import (
 )
 
 type IssuerConfig struct {
-	Domain      string `fig:"domain,required"`
-	IpfsNodeURL string `fig:"ipfs_node_url,required"`
+	BaseURL string `fig:"base_url,required"`
 }
 
 func (c *config) Issuer() *IssuerConfig {

@@ -17,7 +17,7 @@ type IssueClaimRequest struct {
 	UserID     *core.ID
 	SchemaType claimResources.ClaimSchemaType
 	Expiration time.Time
-	SchemaData []byte
+	Credential []byte
 }
 
 type issueClaimRequestRaw struct {
@@ -45,7 +45,7 @@ func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
 
 	schemaType := claimResources.ClaimSchemaTypeList[requestRaw.ClaimID]
 	if err := validation.Validate(
-		requestRaw.Body.Data.Attributes.SchemaData,
+		requestRaw.Body.Data.Attributes.Credential,
 		validation.By(
 			claimResources.ClaimSchemaList[schemaType].ClaimDataValidateFunc,
 		),
@@ -54,13 +54,13 @@ func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
 	}
 
 	parseData, err := claimResources.ClaimSchemaList[schemaType].ClaimDataParseFunc(
-		requestRaw.Body.Data.Attributes.SchemaData,
+		requestRaw.Body.Data.Attributes.Credential,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse kyc full name data")
 	}
 
-	requestRaw.Body.Data.Attributes.SchemaData = parseData
+	requestRaw.Body.Data.Attributes.Credential = parseData
 
 	return requestRaw.parse(), nil
 }
@@ -74,8 +74,8 @@ func (req *issueClaimRequestRaw) validate() error {
 		"path/{claim-id}": validation.Validate(
 			req.ClaimID, validation.Required, validation.By(MustBeClaimID),
 		),
-		"data/attributes/schema_data": validation.Validate(
-			req.Body.Data.Attributes.SchemaData, validation.Required,
+		"data/attributes/credential": validation.Validate(
+			req.Body.Data.Attributes.Credential, validation.Required,
 		),
 		"data/attributes/expiration": validation.Validate(
 			req.Body.Data.Attributes.Expiration, validation.Required, validation.By(MustBeValidRFC3339),
@@ -114,7 +114,7 @@ func (req *issueClaimRequestRaw) parse() *IssueClaimRequest {
 
 	_ = userID.UnmarshalText([]byte(req.UserID))
 
-	schemaData, _ := req.Body.Data.Attributes.SchemaData.MarshalJSON()
+	schemaData, _ := req.Body.Data.Attributes.Credential.MarshalJSON()
 	schemaDataTrimmed, _ := jsonRawTrimSpaces(schemaData)
 
 	expiration, _ := time.Parse(time.RFC3339, req.Body.Data.Attributes.Expiration)
@@ -123,7 +123,7 @@ func (req *issueClaimRequestRaw) parse() *IssueClaimRequest {
 		Expiration: expiration,
 		UserID:     userID,
 		SchemaType: claimResources.ClaimSchemaTypeList[req.ClaimID],
-		SchemaData: schemaDataTrimmed,
+		Credential: schemaDataTrimmed,
 	}
 }
 

@@ -3,7 +3,7 @@ package treestorage
 import (
 	"context"
 
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	errPkg "gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"

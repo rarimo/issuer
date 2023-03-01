@@ -19,17 +19,12 @@ import (
 )
 
 type Issuer interface {
-	PublishStateOnChain(ctx context.Context) (string, error)
+	PublishStateOnChain(context.Context) (string, error)
 	GetIdentifier() string
-	CreateClaimOffer(userID *core.ID, claimID string) (*protocol.CredentialsOfferMessage, error)
-	IssueClaim(ctx context.Context, userID *core.ID, expiration time.Time,
-		schemaType resources.ClaimSchemaType, schemaData []byte) (uint64, error)
-	OfferCallback(
-		ctx context.Context, request *requests.OfferCallbackRequest,
-	) (*protocol.CredentialIssuanceMessage, error)
-	GetRevocationStatus(
-		ctx context.Context, revID *big.Int,
-	) (*verifiable.RevocationStatus, error)
+	CreateClaimOffer(*core.ID, string) (*protocol.CredentialsOfferMessage, error)
+	IssueClaim(context.Context, *core.ID, *time.Time, resources.ClaimSchemaType, []byte) (uint64, error)
+	OfferCallback(context.Context, *requests.OfferCallbackRequest) (*protocol.CredentialIssuanceMessage, error)
+	GetRevocationStatus(context.Context, *big.Int) (*verifiable.RevocationStatus, error)
 }
 
 func New(ctx context.Context, cfg config.Config) (Issuer, error) {
@@ -38,7 +33,7 @@ func New(ctx context.Context, cfg config.Config) (Issuer, error) {
 		return nil, errors.Wrap(err, "failed to create the new identity")
 	}
 
-	schemaBuilder, err := schemas.NewBuilder(cfg.Issuer().IpfsNodeURL)
+	schemaBuilder, err := schemas.NewBuilder(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new schema builder")
 	}
@@ -53,6 +48,6 @@ func New(ctx context.Context, cfg config.Config) (Issuer, error) {
 		schemaBuilder:       schemaBuilder,
 		claimsOffersQ:       pg.NewClaimsOffersQ(cfg.DB()),
 		authVerificationKey: authVerificationKey,
-		domain:              cfg.Issuer().Domain,
+		baseURL:             cfg.Issuer().BaseURL,
 	}, nil
 }

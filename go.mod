@@ -3,6 +3,7 @@ module gitlab.com/q-dev/q-id/issuer
 go 1.19
 
 require (
+	bou.ke/monkey v1.0.2
 	github.com/Masterminds/squirrel v1.4.0
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/ethereum/go-ethereum v1.10.26
@@ -10,15 +11,14 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/uuid v1.2.0
-	github.com/iden3/go-circuits v0.1.0
 	github.com/iden3/go-iden3-core v1.0.0
 	github.com/iden3/go-iden3-crypto v0.0.13
-	github.com/iden3/go-jwz v0.1.3
-	github.com/iden3/go-merkletree-sql v1.0.2
+	github.com/iden3/go-jwz v1.0.0-beta.0
+	github.com/iden3/go-merkletree-sql/v2 v2.0.0
 	github.com/iden3/go-rapidsnark/prover v0.0.9
-	github.com/iden3/go-rapidsnark/witness v0.0.3
-	github.com/iden3/go-schema-processor v0.1.0
-	github.com/iden3/iden3comm v0.1.2
+	github.com/iden3/go-rapidsnark/witness v0.0.4-0.20221129112904-b9f8680ca8e2
+	github.com/iden3/go-schema-processor v1.1.0
+	github.com/iden3/iden3comm v1.0.0-beta.0
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v1.2.0
 	github.com/stretchr/testify v1.8.1
@@ -27,11 +27,10 @@ require (
 	gitlab.com/distributed_lab/kit v1.11.1
 	gitlab.com/distributed_lab/logan v3.8.1+incompatible
 	gitlab.com/distributed_lab/running v0.0.0-20200706131153-4af0e83eb96c
-	gitlab.com/q-dev/q-id/resources v0.0.0-20230119111250-60534a1d4326
+	gitlab.com/q-dev/q-id/resources v0.0.0-20230301143048-4fb1a6b2410d
 )
 
 require (
-	bou.ke/monkey v1.0.2 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
@@ -59,8 +58,10 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.2.0 // indirect
+	github.com/iancoleman/strcase v0.2.0 // indirect
+	github.com/iden3/go-circuits v1.0.2 // indirect
 	github.com/iden3/go-rapidsnark/types v0.0.2 // indirect
-	github.com/iden3/go-rapidsnark/verifier v0.0.2 // indirect
+	github.com/iden3/go-rapidsnark/verifier v0.0.4-0.20221129112904-b9f8680ca8e2 // indirect
 	github.com/ipfs/go-cid v0.0.7 // indirect
 	github.com/ipfs/go-ipfs-api v0.3.0 // indirect
 	github.com/ipfs/go-ipfs-files v0.0.9 // indirect
@@ -88,7 +89,9 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml v1.9.3 // indirect
+	github.com/piprate/json-gold v0.5.1-0.20230111113000-6ddbe6e6f19f // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/tsdb v0.7.1 // indirect
 	github.com/qri-io/jsonpointer v0.1.1 // indirect
 	github.com/qri-io/jsonschema v0.2.1 // indirect
