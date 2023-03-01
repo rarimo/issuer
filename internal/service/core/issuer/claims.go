@@ -84,12 +84,12 @@ func (isr *issuer) newW3CCredential(
 		return nil, errors.Wrap(err, "failed to parse credentials")
 	}
 
-	credential.CredentialSubject["id"] = "did:" + userID.String()
+	credential.CredentialSubject["id"] = userID.String()
 	credential.CredentialSubject["type"] = schemaType.ToRaw()
 	credential.ID = uuid.NewString()
 	credential.Expiration = expiration
 	credential.IssuanceDate = &issuanceDate
-	credential.Issuer = "did:" + isr.Identifier.String()
+	credential.Issuer = isr.Identifier.String()
 	credential.CredentialStatus = credentialStatus
 	credential.CredentialSchema = verifiable.CredentialSchema{
 		ID:   resources.ClaimSchemaList[schemaType].ClaimSchemaURL,

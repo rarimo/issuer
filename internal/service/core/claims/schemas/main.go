@@ -3,7 +3,6 @@ package schemas
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	core "github.com/iden3/go-iden3-core"
 	jsonSuite "github.com/iden3/go-schema-processor/json"
@@ -83,8 +82,6 @@ func (b *Builder) CreateCoreClaim(
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal verifiable credential")
 	}
-
-	fmt.Println(string(jsonCredential))
 
 	err = claimsProcessor.ValidateData(jsonCredential, b.CachedSchemas[schemaType.ToRaw()].Raw)
 	if err != nil {
