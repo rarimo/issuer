@@ -34,7 +34,7 @@ func (s *service) router() chi.Router {
 				})
 
 				r.Route("/revocations", func(r chi.Router) {
-					r.Post("/{user-id}/{claim-id}", handlers.ClaimRevocation)
+					r.Post("/{user-id}/{claim-type}", handlers.ClaimRevocation)
 					r.Get("/check/{rev-id}", handlers.RevocationCheck)
 				})
 

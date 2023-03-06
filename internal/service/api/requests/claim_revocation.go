@@ -22,7 +22,7 @@ type claimRevocationRequestRaw struct {
 func NewRevocationClaim(r *http.Request) (*ClaimRevocationRequest, error) {
 	requestRaw := claimRevocationRequestRaw{
 		UserID:  chi.URLParam(r, UserIDPathParam),
-		ClaimID: chi.URLParam(r, claimIDPathParam),
+		ClaimID: chi.URLParam(r, claimTypePathParam),
 	}
 
 	if err := requestRaw.validate(); err != nil {
@@ -36,7 +36,7 @@ func NewRevocationClaim(r *http.Request) (*ClaimRevocationRequest, error) {
 func (req *claimRevocationRequestRaw) validate() error {
 	return validation.Errors{
 		"path/{user-id}": validation.Validate(
-			req.UserID, validation.Required, validation.By(MustBeIden3Identifier),
+			req.UserID, validation.Required, validation.By(MustBeValidID),
 		),
 		"path/{claim-id}": validation.Validate(
 			req.ClaimID, validation.Required, validation.By(MustBeClaimID),

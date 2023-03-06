@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/iden3/iden3comm/packers"
 	"github.com/iden3/iden3comm/protocol"
