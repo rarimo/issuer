@@ -111,6 +111,20 @@ func (_m *ClaimsQ) New() data.ClaimsQ {
 	return r0
 }
 
+// Update provides a mock function with given fields: _a0
+func (_m *ClaimsQ) Update(_a0 *data.Claim) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*data.Claim) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewClaimsQ interface {
 	mock.TestingT
 	Cleanup(func())

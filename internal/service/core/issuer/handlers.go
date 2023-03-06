@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/iden3/iden3comm/packers"
 	"github.com/iden3/iden3comm/protocol"
@@ -174,6 +175,39 @@ func (isr *issuer) GetRevocationStatus(
 
 func (isr *issuer) GetIdentifier() string {
 	return isr.Identifier.String()
+}
+
+func (isr *issuer) RevokeClaim(
+	ctx context.Context,
+	userID *core.ID,
+	schemaType resources.ClaimSchemaType,
+) error {
+	claim, err := isr.State.ClaimsQ.GetBySchemaType(schemaType.ToRaw(), userID.String())
+	if err != nil {
+		return errors.Wrap(err, "failed to get claim from db")
+	}
+	if claim == nil {
+		return ErrClaimIsNotExist
+	}
+
+	if claim.Revoked {
+		return ErrClaimIsAlreadyRevoked
+	}
+
+	err = isr.State.RevocationsTree.Add(ctx, new(big.Int).SetUint64(
+		claim.CoreClaim.GetRevocationNonce()), merkletree.HashZero.BigInt(),
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to add revocation nonce to the revocations merkle tree")
+	}
+
+	claim.Revoked = true
+	err = isr.State.ClaimsQ.Update(claim)
+	if err != nil {
+		return errors.Wrap(err, "failed to update claim in db")
+	}
+
+	return nil
 }
 
 func (isr *issuer) checkCallbackRequest(

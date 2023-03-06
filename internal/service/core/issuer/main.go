@@ -25,6 +25,7 @@ type Issuer interface {
 	IssueClaim(context.Context, *core.DID, *time.Time, resources.ClaimSchemaType, []byte) (string, error)
 	OfferCallback(context.Context, *requests.OfferCallbackRequest) (*protocol.CredentialIssuanceMessage, error)
 	GetRevocationStatus(context.Context, *big.Int) (*verifiable.RevocationStatus, error)
+	RevokeClaim(context.Context, *core.ID, resources.ClaimSchemaType) error
 }
 
 func New(ctx context.Context, cfg config.Config) (Issuer, error) {

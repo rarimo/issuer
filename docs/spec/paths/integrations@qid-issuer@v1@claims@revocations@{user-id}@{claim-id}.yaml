@@ -1,0 +1,17 @@
+post:
+  tags:
+    - Claims
+  summary: It issues the claim by the specified schema type
+  operationId: revokeClaim
+  parameters:
+    - $ref: '#/components/parameters/userId'
+    - $ref: '#/components/parameters/claimId'
+  responses:
+    '204':
+      description: Success
+    '400':
+      description: Bad request
+    '409':
+      description: Conflict. Claim is already revoked
+    '500':
+      description: Internal error
