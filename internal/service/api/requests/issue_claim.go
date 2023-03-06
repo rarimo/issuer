@@ -71,8 +71,8 @@ func (req *issueClaimRequestRaw) validate() error {
 		"path/{user-id}": validation.Validate(
 			req.UserID, validation.Required, validation.By(MustBeValidID),
 		),
-		"path/{claim-id}": validation.Validate(
-			req.ClaimType, validation.Required, validation.By(MustBeClaimID),
+		"path/{claim-type}": validation.Validate(
+			req.ClaimType, validation.Required, validation.By(MustBeClaimType),
 		),
 		"data/attributes/credential": validation.Validate(
 			req.Body.Data.Attributes.Credential, validation.Required,
@@ -83,7 +83,7 @@ func (req *issueClaimRequestRaw) validate() error {
 	}.Filter()
 }
 
-func MustBeClaimID(src interface{}) error {
+func MustBeClaimType(src interface{}) error {
 	schemaTypeRaw, ok := src.(string)
 	if !ok {
 		return errors.New("it is not a schema type")

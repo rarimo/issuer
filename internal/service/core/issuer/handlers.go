@@ -94,7 +94,7 @@ func (isr *issuer) OfferCallback(
 		return nil, ErrClaimOfferIsNotExist
 	}
 
-	claim, err := isr.State.ClaimsQ.GetBySchemaType(request.FetchMessage.Body.ID, claimOffer.To)
+	claim, err := isr.State.ClaimsQ.Get(request.FetchMessage.Body.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get claim from db")
 	}

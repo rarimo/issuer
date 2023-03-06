@@ -24,7 +24,7 @@ func NewClaimOffer(callBackURL string, from, to *core.DID, claim *data.Claim) *p
 			URL: callBackURL,
 			Credentials: []protocol.CredentialOffer{
 				protocol.CredentialOffer{
-					ID:          claim.SchemaType,
+					ID:          claim.ID,
 					Description: resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName,
 				},
 			},
@@ -110,23 +110,4 @@ func compactProofs(claim *data.Claim) (verifiable.CredentialProofs, error) {
 	}
 
 	return proofs, nil
-}
-
-func compactCredentialSubject(claim *data.Claim) (map[string]interface{}, error) {
-	subjectID, err := claim.CoreClaim.GetID()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get subject id")
-	}
-
-	credentialSubject := make(map[string]interface{})
-	if err := json.Unmarshal(claim.Credential, &credentialSubject); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal credential subject")
-	}
-
-	credentialSubject["type"] = resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName
-	if len(subjectID.String()) > 0 {
-		credentialSubject["id"] = subjectID.String()
-	}
-
-	return credentialSubject, nil
 }

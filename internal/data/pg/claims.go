@@ -66,7 +66,7 @@ func (q *claimsQ) Update(claim *data.Claim) error {
 	return nil
 }
 
-func (q *claimsQ) Get(id uint64) (*data.Claim, error) {
+func (q *claimsQ) Get(id string) (*data.Claim, error) {
 	var result data.Claim
 
 	err := q.db.Get(&result,

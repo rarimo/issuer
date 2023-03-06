@@ -18,7 +18,7 @@ func ClaimRevocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Issuer(r).RevokeClaim(r.Context(), req.UserID, req.ClaimID)
+	err = Issuer(r).RevokeClaim(r.Context(), req.UserID, req.ClaimType)
 	switch {
 	case errors.Is(err, issuer.ErrClaimIsNotExist):
 		Log(r).WithField("reason", err).Debug("Not found")
@@ -30,7 +30,7 @@ func ClaimRevocation(w http.ResponseWriter, r *http.Request) {
 		return
 	case err != nil:
 		Log(r).WithError(err).
-			WithField("claim-id", req.ClaimID).
+			WithField("claim-id", req.ClaimType).
 			WithField("user-id", req.UserID).
 			Error("Failed get claim offer")
 		ape.RenderErr(w, problems.InternalError())

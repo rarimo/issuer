@@ -687,6 +687,8 @@ gitlab.com/q-dev/q-id/resources v0.0.0-20230301143048-4fb1a6b2410d h1:/pLEkT71Wc
 gitlab.com/q-dev/q-id/resources v0.0.0-20230301143048-4fb1a6b2410d/go.mod h1:urXT+Kjn2usO1PxGXBsmoAgLUPrZg0xqC6zIC8yaHgU=
 gitlab.com/q-dev/q-id/resources v0.0.0-20230303114944-ecc6b508cbfd h1:nJVAlet+rDG9Mdb9M1nMXb+CUEX1qAfU8GDCMn3VNBU=
 gitlab.com/q-dev/q-id/resources v0.0.0-20230303114944-ecc6b508cbfd/go.mod h1:urXT+Kjn2usO1PxGXBsmoAgLUPrZg0xqC6zIC8yaHgU=
+gitlab.com/q-dev/q-id/resources v0.0.0-20230306154706-100429d5a032 h1:FbK6CZ7xeDtFZ61Rf/wG324puyJduzkEYsVFWlbaQ8U=
+gitlab.com/q-dev/q-id/resources v0.0.0-20230306154706-100429d5a032/go.mod h1:urXT+Kjn2usO1PxGXBsmoAgLUPrZg0xqC6zIC8yaHgU=
 go.etcd.io/etcd/api/v3 v3.5.0/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=
 go.etcd.io/etcd/client/pkg/v3 v3.5.0/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/v2 v2.305.0/go.mod h1:h9puh54ZTgAKtEbut2oe9P4L/oqKCVB6xsXlzd7alYQ=

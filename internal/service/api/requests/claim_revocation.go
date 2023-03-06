@@ -10,19 +10,19 @@ import (
 )
 
 type ClaimRevocationRequest struct {
-	UserID  *core.ID
-	ClaimID claimResources.ClaimSchemaType
+	UserID    *core.ID
+	ClaimType claimResources.ClaimSchemaType
 }
 
 type claimRevocationRequestRaw struct {
-	UserID  string
-	ClaimID string
+	UserID    string
+	ClaimType string
 }
 
 func NewRevocationClaim(r *http.Request) (*ClaimRevocationRequest, error) {
 	requestRaw := claimRevocationRequestRaw{
-		UserID:  chi.URLParam(r, UserIDPathParam),
-		ClaimID: chi.URLParam(r, claimTypePathParam),
+		UserID:    chi.URLParam(r, UserIDPathParam),
+		ClaimType: chi.URLParam(r, claimTypePathParam),
 	}
 
 	if err := requestRaw.validate(); err != nil {
@@ -38,8 +38,8 @@ func (req *claimRevocationRequestRaw) validate() error {
 		"path/{user-id}": validation.Validate(
 			req.UserID, validation.Required, validation.By(MustBeValidID),
 		),
-		"path/{claim-id}": validation.Validate(
-			req.ClaimID, validation.Required, validation.By(MustBeClaimID),
+		"path/{claim-type}": validation.Validate(
+			req.ClaimType, validation.Required, validation.By(MustBeClaimType),
 		),
 	}.Filter()
 }
@@ -50,7 +50,7 @@ func (req *claimRevocationRequestRaw) parse() *ClaimRevocationRequest {
 	_ = userID.UnmarshalText([]byte(req.UserID))
 
 	return &ClaimRevocationRequest{
-		UserID:  userID,
-		ClaimID: claimResources.ClaimSchemaTypeList[req.ClaimID],
+		UserID:    userID,
+		ClaimType: claimResources.ClaimSchemaTypeList[req.ClaimType],
 	}
 }

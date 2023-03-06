@@ -10,7 +10,7 @@ import (
 type ClaimsQ interface {
 	New() ClaimsQ
 
-	Get(id uint64) (*Claim, error)
+	Get(id string) (*Claim, error)
 	GetAuthClaim() (*Claim, error)
 	GetBySchemaType(schemaType string, userID string) (*Claim, error)
 	Insert(*Claim) error

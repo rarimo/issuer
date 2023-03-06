@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/google/uuid"
 	"github.com/iden3/go-jwz"
 	"github.com/iden3/iden3comm/protocol"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -59,4 +60,18 @@ func (r *OfferCallbackRequest) validate() error {
 			r.FetchMessage.Body.ID, validation.Required, validation.By(MustBeClaimID),
 		),
 	}.Filter()
+}
+
+func MustBeClaimID(src interface{}) error {
+	uuidRaw, ok := src.(string)
+	if !ok {
+		return errors.New("it is not a string")
+	}
+
+	_, err := uuid.Parse(uuidRaw)
+	if err != nil {
+		return errors.New("it is not a valid uuid")
+	}
+
+	return nil
 }

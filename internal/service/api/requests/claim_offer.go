@@ -40,8 +40,8 @@ func NewClaimOffer(r *http.Request) (*ClaimOfferRequest, error) {
 // nolint
 func (req *claimOfferRequestRaw) validate() error {
 	return validation.Errors{
-		"path/{claim-id}": validation.Validate(
-			req.ClaimType, validation.Required, validation.By(MustBeClaimID),
+		"path/{claim-type}": validation.Validate(
+			req.ClaimType, validation.Required, validation.By(MustBeClaimType),
 		),
 		"path/{user-id}": validation.Validate(
 			req.UserID, validation.Required, validation.By(MustBeValidID),

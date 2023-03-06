@@ -28,7 +28,7 @@ func NewBuilder(ctx context.Context) (*Builder, error) {
 }
 
 func (b *Builder) loadSchemas(ctx context.Context) error {
-	for _, schema := range resources.ClaimSchemaList {
+	for schemaType, schema := range resources.ClaimSchemaList {
 		schemaBytes, _, err := (&loaders.HTTP{
 			URL: schema.ClaimSchemaURL,
 		}).Load(ctx)
@@ -46,7 +46,7 @@ func (b *Builder) loadSchemas(ctx context.Context) error {
 			return errors.New("failed to get jsonLdContext from schema")
 		}
 
-		b.CachedSchemas[schema.ClaimSchemaName] = Schema{
+		b.CachedSchemas[schemaType.ToRaw()] = Schema{
 			Raw:           schemaBytes,
 			Body:          parsedSchema,
 			JSONLdContext: jsonLdContext,
@@ -91,7 +91,7 @@ func (b *Builder) CreateCoreClaim(
 	coreClaim, err := claimsProcessor.ParseClaim(
 		ctx,
 		*credential,
-		resources.ClaimSchemaList[schemaType].ClaimSchemaName,
+		schemaType.ToRaw(),
 		b.CachedSchemas[schemaType.ToRaw()].Raw,
 		parseOptions,
 	)
