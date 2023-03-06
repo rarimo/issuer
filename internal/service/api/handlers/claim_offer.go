@@ -19,7 +19,7 @@ func ClaimOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claimOffer, err := Issuer(r).CreateClaimOffer(req.UserID, req.ClaimID)
+	claimOffer, err := Issuer(r).CreateClaimOffer(req.UserDID, req.ClaimType)
 	switch {
 	case errors.Is(err, issuer.ErrClaimIsNotExist):
 		Log(r).WithField("reason", err).Debug("Not found")
@@ -31,8 +31,8 @@ func ClaimOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	case err != nil:
 		Log(r).WithError(err).
-			WithField("claim-id", req.ClaimID).
-			WithField("user-id", req.UserID).
+			WithField("claim-id", req.ClaimType).
+			WithField("user-did", req.UserDID.String()).
 			Error("Failed get claim offer")
 		ape.RenderErr(w, problems.InternalError())
 		return

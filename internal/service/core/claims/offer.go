@@ -2,7 +2,6 @@ package claims
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,7 +14,7 @@ import (
 	resources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
-func NewClaimOffer(callBackURL string, from, to *core.ID, claim *data.Claim) *protocol.CredentialsOfferMessage {
+func NewClaimOffer(callBackURL string, from, to *core.DID, claim *data.Claim) *protocol.CredentialsOfferMessage {
 	return &protocol.CredentialsOfferMessage{
 		ID:       uuid.NewString(),
 		Typ:      packers.MediaTypePlainMessage,
@@ -35,11 +34,16 @@ func NewClaimOffer(callBackURL string, from, to *core.ID, claim *data.Claim) *pr
 	}
 }
 
-func ClaimOfferToRaw(claimOffer *protocol.CredentialsOfferMessage, createdAt time.Time) *data.ClaimOffer {
+func ClaimOfferToRaw(
+	claimOffer *protocol.CredentialsOfferMessage,
+	createdAt time.Time,
+	fromID core.ID,
+	toID core.ID,
+) *data.ClaimOffer {
 	claimOfferRaw := data.ClaimOffer{
 		ID:         claimOffer.ThreadID,
-		From:       claimOffer.From,
-		To:         claimOffer.To,
+		From:       fromID.String(),
+		To:         toID.String(),
 		CreatedAt:  createdAt,
 		IsReceived: false,
 	}
@@ -51,52 +55,19 @@ func ClaimOfferToRaw(claimOffer *protocol.CredentialsOfferMessage, createdAt tim
 	return &claimOfferRaw
 }
 
-func ClaimModelToW3Credential(claim *data.Claim, issuer string) (*verifiable.W3CCredential, error) {
-	credentialSubject, err := compactCredentialSubject(claim)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to compact credential subject")
-	}
-
+func ClaimModelToW3Credential(claim *data.Claim) (*verifiable.W3CCredential, error) {
 	proofs, err := compactProofs(claim)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to compact proofs")
 	}
 
-	credentialStatus := &verifiable.CredentialStatus{}
-	if claim.CredentialStatus != nil && string(claim.CredentialStatus) != "{}" {
-		if err := json.Unmarshal(claim.CredentialStatus, credentialStatus); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal credential status")
-		}
+	res := &verifiable.W3CCredential{}
+	err = json.Unmarshal(claim.Credential, res)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal credential")
 	}
 
-	res := &verifiable.W3CCredential{
-		ID: fmt.Sprint(claim.ID),
-		Context: []string{
-			verifiable.JSONLDSchemaW3CCredential2018,
-			verifiable.JSONLDSchemaIden3Credential,
-			claim.SchemaURL,
-		},
-		Type: []string{
-			verifiable.TypeW3CVerifiableCredential,
-			claim.SchemaType,
-		},
-		CredentialSubject: credentialSubject,
-		CredentialStatus:  credentialStatus,
-		Issuer:            issuer,
-		CredentialSchema: struct {
-			ID   string `json:"id"`
-			Type string `json:"type"`
-		}{
-			ID:   claim.SchemaURL,
-			Type: resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName,
-		},
-		Proof: proofs,
-	}
-
-	expiration, ok := claim.CoreClaim.GetExpirationDate()
-	if ok {
-		res.Expiration = &expiration
-	}
+	res.Proof = proofs
 
 	return res, nil
 }
@@ -148,7 +119,7 @@ func compactCredentialSubject(claim *data.Claim) (map[string]interface{}, error)
 	}
 
 	credentialSubject := make(map[string]interface{})
-	if err := json.Unmarshal(claim.Data, &credentialSubject); err != nil {
+	if err := json.Unmarshal(claim.Credential, &credentialSubject); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal credential subject")
 	}
 

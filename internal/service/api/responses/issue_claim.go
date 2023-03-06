@@ -1,8 +1,6 @@
 package responses
 
 import (
-	"fmt"
-
 	"gitlab.com/q-dev/q-id/issuer/resources"
 )
 
@@ -14,11 +12,11 @@ type IssueClaimResponseData struct {
 	resources.Key
 }
 
-func NewIssueClaim(claimID uint64) *IssueClaimResponse {
+func NewIssueClaim(claimID string) *IssueClaimResponse {
 	return &IssueClaimResponse{
 		Data: IssueClaimResponseData{
 			Key: resources.Key{
-				ID:   fmt.Sprint(claimID),
+				ID:   claimID,
 				Type: resources.CLAIM_ID,
 			},
 		},

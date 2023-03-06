@@ -78,7 +78,7 @@ func (iden *Identity) Init(ctx context.Context) error {
 func (iden *Identity) PublishStateOnChain(ctx context.Context) (string, error) {
 	txHash, err := iden.State.PublishOnChain(ctx, &statePkg.IdentityInfo{
 		BabyJubJubPrivateKey: iden.babyJubJubPrivateKey,
-		Identifier:           iden.Identifier,
+		Identifier:           &iden.Identifier.ID,
 		AuthClaim:            iden.AuthClaim.CoreClaim.Claim,
 	})
 	if err != nil {

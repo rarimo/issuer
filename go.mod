@@ -27,7 +27,7 @@ require (
 	gitlab.com/distributed_lab/kit v1.11.1
 	gitlab.com/distributed_lab/logan v3.8.1+incompatible
 	gitlab.com/distributed_lab/running v0.0.0-20200706131153-4af0e83eb96c
-	gitlab.com/q-dev/q-id/resources v0.0.0-20230301143048-4fb1a6b2410d
+	gitlab.com/q-dev/q-id/resources v0.0.0-20230303114944-ecc6b508cbfd
 )
 
 require (

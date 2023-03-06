@@ -10,24 +10,24 @@ import (
 )
 
 const (
-	claimIDPathParam = "claim-id"
-	UserIDPathParam  = "user-id"
+	claimTypePathParam = "claim-type"
+	UserIDPathParam    = "user-id"
 )
 
 type ClaimOfferRequest struct {
-	UserID  *core.ID
-	ClaimID string
+	UserDID   *core.DID
+	ClaimType string
 }
 
 type claimOfferRequestRaw struct {
-	UserID  string
-	ClaimID string
+	UserID    string
+	ClaimType string
 }
 
 func NewClaimOffer(r *http.Request) (*ClaimOfferRequest, error) {
 	requestBody := claimOfferRequestRaw{
-		UserID:  chi.URLParam(r, UserIDPathParam),
-		ClaimID: chi.URLParam(r, claimIDPathParam),
+		UserID:    chi.URLParam(r, UserIDPathParam),
+		ClaimType: chi.URLParam(r, claimTypePathParam),
 	}
 
 	if err := requestBody.validate(); err != nil {
@@ -41,34 +41,54 @@ func NewClaimOffer(r *http.Request) (*ClaimOfferRequest, error) {
 func (req *claimOfferRequestRaw) validate() error {
 	return validation.Errors{
 		"path/{claim-id}": validation.Validate(
-			req.ClaimID, validation.Required, validation.By(MustBeClaimID),
+			req.ClaimType, validation.Required, validation.By(MustBeClaimID),
 		),
 		"path/{user-id}": validation.Validate(
-			req.UserID, validation.Required, validation.By(MustBeIden3Identifier),
+			req.UserID, validation.Required, validation.By(MustBeValidID),
 		),
 	}.Filter()
 }
 
-func MustBeIden3Identifier(src interface{}) error {
+func MustBeValidID(src interface{}) error {
 	identifierRawBase58, ok := src.(string)
 	if !ok {
 		return errors.New("it is not an identifier")
 	}
 
-	_, err := core.IDFromString(identifierRawBase58)
+	id, err := core.IDFromString(identifierRawBase58)
 	if err != nil {
-		return errors.New("it is not an identifier")
+		return errors.New("it is not a string")
+	}
+
+	_, err = core.ParseDIDFromID(id)
+	if err != nil {
+		return errors.New("it is not a valid did")
+	}
+
+	return nil
+}
+
+func MustBeValidDID(src interface{}) error {
+	didRawBase58, ok := src.(string)
+	if !ok {
+		return errors.New("it is not a string")
+	}
+
+	_, err := core.ParseDID(didRawBase58)
+	if err != nil {
+		return errors.New("it is not a valid did")
 	}
 
 	return nil
 }
 
 func (req *claimOfferRequestRaw) parse() *ClaimOfferRequest {
-	userID := &core.ID{}
+	userID := core.ID{}
 	_ = userID.UnmarshalText([]byte(req.UserID))
+	did, _ := core.ParseDIDFromID(userID)
 
 	return &ClaimOfferRequest{
-		UserID:  userID,
-		ClaimID: req.ClaimID,
+		UserDID:   did,
+		ClaimType: req.ClaimType,
 	}
 }

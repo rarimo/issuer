@@ -15,14 +15,12 @@ CREATE TABLE committed_states(
 );
 
 CREATE TABLE claims(
-   id                BIGSERIAL    PRIMARY KEY NOT NULL,
-   schema_url        VARCHAR(256)             NOT NULL,
+   id                CHAR(36)     PRIMARY KEY NOT NULL,
    schema_type       VARCHAR(256)             NOT NULL,
    revoked           BOOLEAN,
    data              BYTEA,
    core_claim        BYTEA                    NOT NULL,
    signature_proof   BYTEA,
-   credential_status BYTEA,
    user_id           VARCHAR(42)              NOT NULL
 );
 

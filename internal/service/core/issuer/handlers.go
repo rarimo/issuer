@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-schema-processor/verifiable"
+	"github.com/iden3/iden3comm/packers"
 	"github.com/iden3/iden3comm/protocol"
 	"github.com/pkg/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
@@ -19,9 +20,9 @@ import (
 )
 
 func (isr *issuer) CreateClaimOffer(
-	userID *core.ID, claimID string,
+	userDID *core.DID, claimID string,
 ) (*protocol.CredentialsOfferMessage, error) {
-	claim, err := isr.Identity.State.ClaimsQ.GetBySchemaType(claimID, userID.String())
+	claim, err := isr.Identity.State.ClaimsQ.GetBySchemaType(claimID, userDID.ID.String())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get claim from db")
 	}
@@ -33,15 +34,15 @@ func (isr *issuer) CreateClaimOffer(
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the claim recipient id")
 	}
-	if !userID.Equals(&recipient) {
+	if !userDID.ID.Equals(&recipient) {
 		return nil, ErrClaimRetrieverIsNotClaimOwner
 	}
 
 	claimOffer := claims.NewClaimOffer(
-		fmt.Sprint(isr.baseURL, ClaimIssueCallBackPath), isr.Identifier, userID, claim,
+		fmt.Sprint(isr.baseURL, ClaimIssueCallBackPath), isr.Identifier, userDID, claim,
 	)
 
-	claimOfferRaw := claims.ClaimOfferToRaw(claimOffer, time.Now())
+	claimOfferRaw := claims.ClaimOfferToRaw(claimOffer, time.Now(), isr.Identifier.ID, userDID.ID)
 	err = isr.claimsOffersQ.Insert(claimOfferRaw)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to insert claim offer to db")
@@ -52,29 +53,29 @@ func (isr *issuer) CreateClaimOffer(
 
 func (isr *issuer) IssueClaim(
 	ctx context.Context,
-	userID *core.ID,
+	userDID *core.DID,
 	expiration *time.Time,
-	schemaType resources.ClaimSchemaType,
+	claimType resources.ClaimSchemaType,
 	credentialRaw []byte,
-) (uint64, error) {
-	claim, err := isr.compactClaim(ctx, userID, expiration, schemaType, credentialRaw)
+) (string, error) {
+	claim, err := isr.compactClaim(ctx, userDID, expiration, claimType, credentialRaw)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to compact the requested claim")
+		return "", errors.Wrap(err, "failed to compact the requested claim")
 	}
 
 	hi, hv, err := claim.CoreClaim.HiHv()
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to get claim index and value hash")
+		return "", errors.Wrap(err, "failed to get claim index and value hash")
 	}
 
 	err = isr.State.ClaimsQ.Insert(claim)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to insert claim into db")
+		return "", errors.Wrap(err, "failed to insert claim into db")
 	}
 
 	err = isr.State.ClaimsTree.Add(ctx, hi, hv)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to add claim to the claims merkle tree")
+		return "", errors.Wrap(err, "failed to add claim to the claims merkle tree")
 	}
 
 	return claim.ID, nil
@@ -92,7 +93,7 @@ func (isr *issuer) OfferCallback(
 		return nil, ErrClaimOfferIsNotExist
 	}
 
-	claim, err := isr.State.ClaimsQ.GetBySchemaType(request.FetchMessage.Body.ID, request.FetchMessage.From)
+	claim, err := isr.State.ClaimsQ.GetBySchemaType(request.FetchMessage.Body.ID, claimOffer.To)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get claim from db")
 	}
@@ -109,7 +110,7 @@ func (isr *issuer) OfferCallback(
 		return nil, errors.Wrap(err, "failed to generate mtp")
 	}
 
-	cred, err := claims.ClaimModelToW3Credential(claim, isr.GetIdentifier())
+	cred, err := claims.ClaimModelToW3Credential(claim)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create iden3 credential from claim model")
 	}
@@ -122,6 +123,7 @@ func (isr *issuer) OfferCallback(
 
 	return &protocol.CredentialIssuanceMessage{
 		ID:       uuid.NewString(),
+		Typ:      packers.MediaTypePlainMessage,
 		Type:     protocol.CredentialIssuanceResponseMessageType,
 		ThreadID: request.FetchMessage.ThreadID,
 		Body:     protocol.IssuanceMessageBody{Credential: *cred},
@@ -179,7 +181,12 @@ func (isr *issuer) checkCallbackRequest(
 	claimOffer *data.ClaimOffer,
 	request *requests.OfferCallbackRequest,
 ) error {
-	ok, err := isr.checkClaimRetriever(claim, request.FetchMessage.From, request.Token)
+	userDID, err := core.ParseDID(request.FetchMessage.From)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse user did")
+	}
+
+	ok, err := isr.checkClaimRetriever(claim, userDID.ID.String(), request.Token)
 	if err != nil {
 		return errors.Wrap(err, "failed to check claim retriever")
 	}

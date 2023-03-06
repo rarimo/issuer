@@ -15,7 +15,7 @@ var (
 
 type Identity struct {
 	babyJubJubPrivateKey *babyjub.PrivateKey
-	Identifier           *core.ID
+	Identifier           *core.DID
 	AuthClaim            *data.Claim
 	circuitsPath         string
 

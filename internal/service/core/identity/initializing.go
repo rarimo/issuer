@@ -8,7 +8,6 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/schemas"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
 )
 
@@ -19,14 +18,14 @@ func (iden *Identity) generateNewIdentity(ctx context.Context) error {
 		return errors.New("error generating new identity, babyJubJubPrivateKey is nil")
 	}
 
-	identifier, authClaim, err := iden.State.SetupGenesis(iden.babyJubJubPrivateKey.Public())
+	did, authClaim, err := iden.State.SetupGenesis(iden.babyJubJubPrivateKey.Public())
 	if err != nil {
 		return errors.Wrap(err, "failed to setup genesis state")
 	}
 
-	iden.Identifier = identifier
+	iden.Identifier = did
 	iden.log.
-		WithField("identifier", identifier.String()).
+		WithField("did", did.String()).
 		Infof("The new Identity successfully generated")
 
 	if err := iden.saveAuthClaimModel(ctx, authClaim); err != nil {
@@ -61,9 +60,8 @@ func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *cor
 
 	authClaim := &data.Claim{
 		CoreClaim:  data.NewCoreClaim(coreAuthClaim),
-		SchemaURL:  schemas.AuthBJJCredentialSchemaURL,
 		SchemaType: claims.AuthBJJCredentialClaimType,
-		Data:       authClaimData,
+		Credential: authClaimData,
 	}
 
 	authClaim.MTP, err = iden.GenerateMTP(ctx, coreAuthClaim)
@@ -96,7 +94,12 @@ func (iden *Identity) parseIdentity(
 		return errors.Wrap(err, "failed to get genesis state hash")
 	}
 
-	iden.Identifier, err = core.IdGenesisFromIdenState(core.TypeDefault, genesisStateHash.BigInt())
+	didType, err := core.BuildDIDType(core.DIDMethodIden3, core.NoChain, core.NoNetwork)
+	if err != nil {
+		return errors.Wrap(err, "failed to build did type")
+	}
+
+	iden.Identifier, err = core.DIDGenesisFromIdenState(didType, genesisStateHash.BigInt())
 	if err != nil {
 		return errors.Wrap(err, "failed to generate identifier from the genesis state")
 	}
@@ -111,6 +114,10 @@ func (iden *Identity) parseIdentity(
 	}
 
 	iden.AuthClaim = authClaim
+
+	iden.log.
+		WithField("did", iden.Identifier.String()).
+		Infof("The Identity successfully loaded")
 
 	return nil
 }

@@ -19,10 +19,6 @@ const (
 	AuthBJJCredentialClaimType = "AuthBJJCredential" //nolint
 )
 
-const (
-	IssuanceDateCredentialField = "issuanceDate"
-)
-
 var (
 	ErrIDPositionIsNotSpecified = errors.New("id position is not specified")
 )

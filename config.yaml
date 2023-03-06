@@ -14,7 +14,7 @@ ethereum:
   private_key: "..."
 
 issuer:
-  domain: "https://..."
+  base_url: "https://..."
 
 state_publisher:
   retry_period: 5s

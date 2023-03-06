@@ -14,16 +14,16 @@ import (
 )
 
 type IssueClaimRequest struct {
-	UserID     *core.ID
-	SchemaType claimResources.ClaimSchemaType
+	UserDID    *core.DID
+	ClaimType  claimResources.ClaimSchemaType
 	Expiration time.Time
 	Credential []byte
 }
 
 type issueClaimRequestRaw struct {
-	UserID  string
-	ClaimID string
-	Body    resources.IssueClaimRequest
+	UserID    string
+	ClaimType string
+	Body      resources.IssueClaimRequest
 }
 
 func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
@@ -34,16 +34,16 @@ func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
 	}
 
 	requestRaw := issueClaimRequestRaw{
-		UserID:  chi.URLParam(r, UserIDPathParam),
-		ClaimID: chi.URLParam(r, claimIDPathParam),
-		Body:    requestBody,
+		UserID:    chi.URLParam(r, UserIDPathParam),
+		ClaimType: chi.URLParam(r, claimTypePathParam),
+		Body:      requestBody,
 	}
 
 	if err := requestRaw.validate(); err != nil {
 		return nil, err
 	}
 
-	schemaType := claimResources.ClaimSchemaTypeList[requestRaw.ClaimID]
+	schemaType := claimResources.ClaimSchemaTypeList[requestRaw.ClaimType]
 	if err := validation.Validate(
 		requestRaw.Body.Data.Attributes.Credential,
 		validation.By(
@@ -69,10 +69,10 @@ func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
 func (req *issueClaimRequestRaw) validate() error {
 	return validation.Errors{
 		"path/{user-id}": validation.Validate(
-			req.UserID, validation.Required, validation.By(MustBeIden3Identifier),
+			req.UserID, validation.Required, validation.By(MustBeValidID),
 		),
 		"path/{claim-id}": validation.Validate(
-			req.ClaimID, validation.Required, validation.By(MustBeClaimID),
+			req.ClaimType, validation.Required, validation.By(MustBeClaimID),
 		),
 		"data/attributes/credential": validation.Validate(
 			req.Body.Data.Attributes.Credential, validation.Required,
@@ -110,9 +110,10 @@ func MustBeValidRFC3339(src interface{}) error {
 }
 
 func (req *issueClaimRequestRaw) parse() *IssueClaimRequest {
-	userID := &core.ID{}
+	userID := core.ID{}
 
 	_ = userID.UnmarshalText([]byte(req.UserID))
+	did, _ := core.ParseDIDFromID(userID)
 
 	schemaData, _ := req.Body.Data.Attributes.Credential.MarshalJSON()
 	schemaDataTrimmed, _ := jsonRawTrimSpaces(schemaData)
@@ -121,8 +122,8 @@ func (req *issueClaimRequestRaw) parse() *IssueClaimRequest {
 
 	return &IssueClaimRequest{
 		Expiration: expiration,
-		UserID:     userID,
-		SchemaType: claimResources.ClaimSchemaTypeList[req.ClaimID],
+		UserDID:    did,
+		ClaimType:  claimResources.ClaimSchemaTypeList[req.ClaimType],
 		Credential: schemaDataTrimmed,
 	}
 }

@@ -9,7 +9,8 @@ import (
 
 const (
 	ClaimIssueCallBackPath = "/integrations/qid-issuer/v1/claims/offers/callback"
-	basicAuthKeyPath       = "/key/auth.json"
+	GetClaimPath           = "/integrations/qid-issuer/v1/claims/"
+	basicAuthKeyPath       = "/auth/verification_key.json"
 )
 
 var (

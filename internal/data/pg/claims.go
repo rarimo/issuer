@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 )
 
 const (
@@ -17,8 +18,6 @@ const (
 	coreClaimColumnName  = "core_claim"
 	schemaTypeColumnName = "schema_type"
 	userIDColumnName     = "user_id"
-
-	authClaimID = 1
 )
 
 type claimsQ struct {
@@ -74,7 +73,7 @@ func (q *claimsQ) GetAuthClaim() (*data.Claim, error) {
 	err := q.db.Get(&result,
 		sq.Select("*").
 			From(claimsTableName).
-			Where(sq.Eq{idColumnName: authClaimID}))
+			Where(sq.Eq{schemaTypeColumnName: claims.AuthBJJCredentialClaimType}))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil

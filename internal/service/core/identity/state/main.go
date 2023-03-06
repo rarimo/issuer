@@ -103,7 +103,7 @@ func (is *IdentityState) AddClaimMT(claim *core.Claim) error {
 	return nil
 }
 
-func (is *IdentityState) SetupGenesis(publicKey *babyjub.PublicKey) (*core.ID, *core.Claim, error) {
+func (is *IdentityState) SetupGenesis(publicKey *babyjub.PublicKey) (*core.DID, *core.Claim, error) {
 	authClaim, err := claims.NewAuthClaim(publicKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to crate new auth claim")
@@ -119,10 +119,15 @@ func (is *IdentityState) SetupGenesis(publicKey *babyjub.PublicKey) (*core.ID, *
 		return nil, nil, errors.Wrap(err, "failed to get state hash")
 	}
 
-	identifier, err := core.IdGenesisFromIdenState(core.TypeDefault, genesisStateHash.BigInt())
+	didType, err := core.BuildDIDType(core.DIDMethodIden3, core.NoChain, core.NoNetwork)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to get identifier from the genesis state")
+		return nil, nil, errors.Wrap(err, "failed to build did type")
 	}
 
-	return identifier, authClaim, nil
+	did, err := core.DIDGenesisFromIdenState(didType, genesisStateHash.BigInt())
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get did from the genesis state")
+	}
+
+	return did, authClaim, nil
 }

@@ -50,10 +50,10 @@ func (r *OfferCallbackRequest) validate() error {
 			r.FetchMessage.Type, validation.Required, validation.In(protocol.CredentialFetchRequestMessageType),
 		),
 		"message/from": validation.Validate(
-			r.FetchMessage.From, validation.Required, validation.By(MustBeIden3Identifier),
+			r.FetchMessage.From, validation.Required, validation.By(MustBeValidDID),
 		),
 		"message/to": validation.Validate(
-			r.FetchMessage.To, validation.Required, validation.By(MustBeIden3Identifier),
+			r.FetchMessage.To, validation.Required, validation.By(MustBeValidDID),
 		),
 		"message/body/id": validation.Validate(
 			r.FetchMessage.Body.ID, validation.Required, validation.By(MustBeClaimID),

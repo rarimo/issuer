@@ -17,10 +17,10 @@ import (
 
 func (isr *issuer) compactClaim(
 	ctx context.Context,
-	userID *core.ID,
+	userDID *core.DID,
 	expiration *time.Time,
-	schemaType resources.ClaimSchemaType,
-	credentialRaw []byte,
+	claimType resources.ClaimSchemaType,
+	credentialSubjectRaw []byte,
 ) (*data.Claim, error) {
 	revNonce, err := claims.CryptoRandUint64()
 	if err != nil {
@@ -32,14 +32,20 @@ func (isr *issuer) compactClaim(
 		Type: verifiable.SparseMerkleTreeProof,
 	}
 
-	credential, err := isr.newW3CCredential(userID, credentialRaw, expiration, schemaType, credentialsStatus)
+	claimID := uuid.NewString()
+	credential, err := isr.newW3CCredential(claimID, userDID, credentialSubjectRaw, expiration, claimType, credentialsStatus)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new w3c credential")
 	}
 
+	credentialRaw, err := json.Marshal(credential)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal credential")
+	}
+
 	coreClaim, err := isr.schemaBuilder.CreateCoreClaim(
 		ctx,
-		schemaType,
+		claimType,
 		credential,
 		revNonce,
 	)
@@ -55,56 +61,47 @@ func (isr *issuer) compactClaim(
 		return nil, errors.Wrap(err, "failed to get signature proof")
 	}
 
-	credentialsStatusRaw, err := json.Marshal(credentialsStatus)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal credential status")
-	}
-
 	return &data.Claim{
-		SchemaURL:        resources.ClaimSchemaList[schemaType].ClaimSchemaURL,
-		SchemaType:       schemaType.ToRaw(),
-		CoreClaim:        data.NewCoreClaim(coreClaim),
-		CredentialStatus: credentialsStatusRaw,
-		SignatureProof:   signProof,
-		Data:             credentialRaw,
-		UserID:           userID.String(),
+		ID:             claimID,
+		SchemaType:     claimType.ToRaw(),
+		CoreClaim:      data.NewCoreClaim(coreClaim),
+		SignatureProof: signProof,
+		Credential:     credentialRaw,
+		UserID:         userDID.ID.String(),
 	}, nil
 }
 
 func (isr *issuer) newW3CCredential(
-	userID *core.ID,
-	credentialRaw []byte,
+	claimID string,
+	userDID *core.DID,
+	credentialSubjectRaw []byte,
 	expiration *time.Time,
-	schemaType resources.ClaimSchemaType,
+	claimType resources.ClaimSchemaType,
 	credentialStatus verifiable.CredentialStatus,
 ) (*verifiable.W3CCredential, error) {
 	issuanceDate := time.Now()
-	credential, err := claims.ParseCredentialSubjectFromSnakeCase(credentialRaw)
+	credential, err := claims.ParseCredentialFromSnakeCase(credentialSubjectRaw)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse credentials")
 	}
 
-	credential.CredentialSubject["id"] = userID.String()
-	credential.CredentialSubject["type"] = schemaType.ToRaw()
-	credential.ID = uuid.NewString()
+	credential.CredentialSubject["id"] = userDID.String()
+	credential.CredentialSubject["type"] = claimType.ToRaw()
+	credential.ID = fmt.Sprint(isr.baseURL, GetClaimPath, claimID)
 	credential.Expiration = expiration
 	credential.IssuanceDate = &issuanceDate
 	credential.Issuer = isr.Identifier.String()
 	credential.CredentialStatus = credentialStatus
 	credential.CredentialSchema = verifiable.CredentialSchema{
-		ID:   resources.ClaimSchemaList[schemaType].ClaimSchemaURL,
+		ID:   resources.ClaimSchemaList[claimType].ClaimSchemaURL,
 		Type: verifiable.JSONSchemaValidator2018,
 	}
 	credential.Context = []string{
 		verifiable.JSONLDSchemaW3CCredential2018,
 		verifiable.JSONLDSchemaIden3Credential,
-		isr.schemaBuilder.CachedSchemas[string(schemaType)].JSONLdContext,
+		isr.schemaBuilder.CachedSchemas[string(claimType)].JSONLdContext,
 	}
-	credential.Type = []string{verifiable.TypeW3CVerifiableCredential, schemaType.ToRaw()}
-
-	if schemaType == resources.QDAOMembershipSchemaType {
-		credential.CredentialSubject[claims.IssuanceDateCredentialField] = issuanceDate.Unix()
-	}
+	credential.Type = []string{verifiable.TypeW3CVerifiableCredential, claimType.ToRaw()}
 
 	return credential, nil
 }

@@ -20,7 +20,7 @@ func CryptoRandUint64() (uint64, error) {
 	return binary.LittleEndian.Uint64(randBuffer[:]), nil
 }
 
-func ParseCredentialSubjectFromSnakeCase(credentialRaw []byte) (*verifiable.W3CCredential, error) {
+func ParseCredentialFromSnakeCase(credentialRaw []byte) (*verifiable.W3CCredential, error) {
 	credentialsMap := map[string]interface{}{}
 	if err := json.Unmarshal(credentialRaw, &credentialsMap); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal credentials to map")

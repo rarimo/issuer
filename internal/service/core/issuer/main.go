@@ -21,8 +21,8 @@ import (
 type Issuer interface {
 	PublishStateOnChain(context.Context) (string, error)
 	GetIdentifier() string
-	CreateClaimOffer(*core.ID, string) (*protocol.CredentialsOfferMessage, error)
-	IssueClaim(context.Context, *core.ID, *time.Time, resources.ClaimSchemaType, []byte) (uint64, error)
+	CreateClaimOffer(*core.DID, string) (*protocol.CredentialsOfferMessage, error)
+	IssueClaim(context.Context, *core.DID, *time.Time, resources.ClaimSchemaType, []byte) (string, error)
 	OfferCallback(context.Context, *requests.OfferCallbackRequest) (*protocol.CredentialIssuanceMessage, error)
 	GetRevocationStatus(context.Context, *big.Int) (*verifiable.RevocationStatus, error)
 }

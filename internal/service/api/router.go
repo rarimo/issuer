@@ -26,8 +26,10 @@ func (s *service) router() chi.Router {
 			})
 
 			r.Route("/claims", func(r chi.Router) {
+				r.Get("/{claim-id}", handlers.GetClaim)
+
 				r.Route("/offers", func(r chi.Router) {
-					r.Get("/{user-id}/{claim-id}", handlers.ClaimOffer)
+					r.Get("/{user-id}/{claim-type}", handlers.ClaimOffer)
 					r.Post("/callback", handlers.OfferCallback)
 				})
 
@@ -35,7 +37,7 @@ func (s *service) router() chi.Router {
 					r.Get("/check/{rev-id}", handlers.RevocationCheck)
 				})
 
-				r.Post("/issue/{user-id}/{claim-id}", handlers.IssueClaim)
+				r.Post("/issue/{user-id}/{claim-type}", handlers.IssueClaim)
 			})
 
 			r.Route("/identity", func(r chi.Router) {

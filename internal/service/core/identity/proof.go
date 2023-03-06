@@ -37,6 +37,11 @@ func (iden *Identity) GenerateMTP(
 		return nil, errors.Wrap(err, "failed to get latest committed state hash")
 	}
 
+	coreClaimHex, err := claim.Hex()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse core claim hex")
+	}
+
 	mtProof := verifiable.Iden3SparseMerkleProof{
 		Type: verifiable.Iden3SparseMerkleProofType,
 		MTP:  inclusionProof,
@@ -50,6 +55,7 @@ func (iden *Identity) GenerateMTP(
 			},
 			MTP: inclusionProof,
 		},
+		CoreClaim: coreClaimHex,
 	}
 
 	if lastCommittedStateRaw != nil && lastCommittedStateRaw.TxID != "" {

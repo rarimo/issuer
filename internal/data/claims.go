@@ -17,16 +17,14 @@ type ClaimsQ interface {
 }
 
 type Claim struct {
-	ID               uint64     `db:"id"                structs:"-"`
-	SchemaURL        string     `db:"schema_url"        structs:"schema_url"`
-	SchemaType       string     `db:"schema_type"       structs:"schema_type"`
-	Revoked          bool       `db:"revoked"           structs:"revoked"`
-	Data             []byte     `db:"data"              structs:"data"`
-	CoreClaim        *CoreClaim `db:"core_claim"        structs:"-"`
-	MTP              []byte     `db:"-"                 structs:"-"`
-	SignatureProof   []byte     `db:"signature_proof"   structs:"signature_proof"`
-	CredentialStatus []byte     `db:"credential_status" structs:"credential_status"`
-	UserID           string     `db:"user_id"           structs:"user_id"`
+	ID             string     `db:"id"                structs:"id"`
+	SchemaType     string     `db:"schema_type"       structs:"schema_type"`
+	Revoked        bool       `db:"revoked"           structs:"revoked"`
+	Credential     []byte     `db:"data"              structs:"data"`
+	CoreClaim      *CoreClaim `db:"core_claim"        structs:"-"`
+	MTP            []byte     `db:"-"                 structs:"-"`
+	SignatureProof []byte     `db:"signature_proof"   structs:"signature_proof"`
+	UserID         string     `db:"user_id"           structs:"user_id"`
 }
 
 type CoreClaim struct {
