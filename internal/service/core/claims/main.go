@@ -14,18 +14,6 @@ import (
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 )
 
-func DefineMerklizedRootPosition(metadata *jsonSuite.SchemaMetadata, position string) string {
-	if metadata != nil && metadata.Serialization != nil {
-		return ""
-	}
-
-	if position != "" {
-		return position
-	}
-
-	return utils.MerklizedRootPositionIndex
-}
-
 func SignClaimEntry(claim *core.Claim, signFunc func(*big.Int) ([]byte, error)) (string, error) {
 	hashIndex, hashValue, err := claim.HiHv()
 	if err != nil {
@@ -45,7 +33,11 @@ func SignClaimEntry(claim *core.Claim, signFunc func(*big.Int) ([]byte, error)) 
 	return hex.EncodeToString(sig), nil
 }
 
-func ConstructSignProof(authClaim *data.Claim, claim *core.Claim, signature string) (*verifiable.BJJSignatureProof2021, error) {
+func ConstructSignProof(
+	authClaim *data.Claim,
+	claim *core.Claim,
+	signature string,
+) (*verifiable.BJJSignatureProof2021, error) {
 	authMTP := &verifiable.Iden3SparseMerkleProof{}
 	err := json.Unmarshal(authClaim.MTP, authMTP)
 	if err != nil {
@@ -70,4 +62,16 @@ func ConstructSignProof(authClaim *data.Claim, claim *core.Claim, signature stri
 		CoreClaim:  coreClaimHex,
 		IssuerData: authMTP.IssuerData,
 	}, nil
+}
+
+func DefineMerklizedRootPosition(metadata *jsonSuite.SchemaMetadata, position string) string {
+	if metadata != nil && metadata.Serialization != nil {
+		return ""
+	}
+
+	if position != "" {
+		return position
+	}
+
+	return utils.MerklizedRootPositionIndex
 }

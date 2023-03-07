@@ -20,7 +20,7 @@ state_publisher:
   retry_period: 5s
 
 identity:
-  tree_depth: 64
+  tree_depth: 40
   circuits_path: ./circuits
   babyjubjub_private_key: #example "0xe303de93d018b2fb052f2ecb9214a01a432c0b743501464632964c6ae774f893"
 

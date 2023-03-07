@@ -81,6 +81,11 @@ func (is *IdentityState) prepareTransitionInfo(
 		return nil, errors.Wrap(err, "failed to get latest committed state hash")
 	}
 
+	err = is.RootsTree.Add(ctx, oldState.ClaimsTreeRoot.BigInt(), merkletree.HashZero.BigInt())
+	if err != nil && !errors.Is(err, merkletree.ErrEntryIndexAlreadyExists) {
+		return nil, errors.Wrap(err, "failed to add new claim tree root to the roots tree")
+	}
+
 	newStateHash, err := is.GetCurrentStateHash()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the new state hash")
@@ -120,11 +125,6 @@ func (is *IdentityState) prepareTransitionInputs(
 	oldStateCircuits, err := circuitsState(oldState)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get circuit state")
-	}
-
-	err = is.RootsTree.Add(ctx, oldState.ClaimsTreeRoot.BigInt(), merkletree.HashZero.BigInt())
-	if err != nil && !errors.Is(err, merkletree.ErrEntryIndexAlreadyExists) {
-		return nil, errors.Wrap(err, "failed to add new claim tree root to the roots tree")
 	}
 
 	newStateCircuits := circuits.TreeState{
