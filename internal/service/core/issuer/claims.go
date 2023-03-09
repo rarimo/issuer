@@ -28,8 +28,9 @@ func (isr *issuer) compactClaim(
 	}
 
 	credentialsStatus := verifiable.CredentialStatus{
-		ID:   fmt.Sprint(isr.baseURL, claims.CredentialStatusCheckURL, revNonce),
-		Type: verifiable.SparseMerkleTreeProof,
+		ID:              fmt.Sprint(isr.baseURL, claims.CredentialStatusCheckURL, revNonce),
+		Type:            verifiable.SparseMerkleTreeProof,
+		RevocationNonce: revNonce,
 	}
 
 	claimID := uuid.NewString()

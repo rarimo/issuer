@@ -3,6 +3,7 @@ package schemas
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	core "github.com/iden3/go-iden3-core"
 	jsonSuite "github.com/iden3/go-schema-processor/json"
@@ -91,7 +92,7 @@ func (b *Builder) CreateCoreClaim(
 	coreClaim, err := claimsProcessor.ParseClaim(
 		ctx,
 		*credential,
-		schemaType.ToRaw(),
+		fmt.Sprintf("%s#%s", b.CachedSchemas[schemaType.ToRaw()].JSONLdContext, schemaType.ToRaw()),
 		b.CachedSchemas[schemaType.ToRaw()].Raw,
 		parseOptions,
 	)
