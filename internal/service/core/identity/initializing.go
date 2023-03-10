@@ -28,7 +28,7 @@ func (iden *Identity) generateNewIdentity(ctx context.Context) error {
 		WithField("did", did.String()).
 		Infof("The new Identity successfully generated")
 
-	if err := iden.saveAuthClaimModel(ctx, authClaim); err != nil {
+	if err := iden.saveAuthClaimModel(authClaim); err != nil {
 		return errors.Wrap(err, "failed to save auth claim to db")
 	}
 
@@ -77,11 +77,6 @@ func (iden *Identity) parseIdentity(
 		return errors.New("auth claim is nil")
 	}
 
-	authClaim.MTP, err = iden.GenerateMTP(ctx, authClaim.CoreClaim.Claim)
-	if err != nil {
-		return errors.Wrap(err, "failed to generate proof")
-	}
-
 	iden.AuthClaim = authClaim
 
 	iden.log.
@@ -91,7 +86,7 @@ func (iden *Identity) parseIdentity(
 	return nil
 }
 
-func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *core.Claim) error {
+func (iden *Identity) saveAuthClaimModel(coreAuthClaim *core.Claim) error {
 	if iden.babyJubJubPrivateKey == nil {
 		return errors.New("error generating new identity, babyJubJubPrivateKey is nil")
 	}
@@ -105,11 +100,6 @@ func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *cor
 		CoreClaim:  data.NewCoreClaim(coreAuthClaim),
 		SchemaType: claims.AuthBJJCredentialClaimType,
 		Credential: authClaimData,
-	}
-
-	authClaim.MTP, err = iden.GenerateMTP(ctx, coreAuthClaim)
-	if err != nil {
-		return errors.Wrap(err, "failed to generate proof")
 	}
 
 	err = iden.State.ClaimsQ.Insert(authClaim)

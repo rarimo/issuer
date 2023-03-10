@@ -54,21 +54,12 @@ func (isr *issuer) compactClaim(
 		return nil, errors.Wrap(err, "failed to process schema")
 	}
 
-	signProof, err := isr.signClaim(
-		coreClaim,
-		fmt.Sprint(isr.baseURL, claims.CredentialStatusCheckURL, coreClaim.GetRevocationNonce()),
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get signature proof")
-	}
-
 	return &data.Claim{
-		ID:             claimID,
-		SchemaType:     claimType.ToRaw(),
-		CoreClaim:      data.NewCoreClaim(coreClaim),
-		SignatureProof: signProof,
-		Credential:     credentialRaw,
-		UserID:         userDID.ID.String(),
+		ID:         claimID,
+		SchemaType: claimType.ToRaw(),
+		CoreClaim:  data.NewCoreClaim(coreClaim),
+		Credential: credentialRaw,
+		UserID:     userDID.ID.String(),
 	}, nil
 }
 
@@ -105,28 +96,4 @@ func (isr *issuer) newW3CCredential(
 	credential.Type = []string{verifiable.TypeW3CVerifiableCredential, claimType.ToRaw()}
 
 	return credential, nil
-}
-
-func (isr *issuer) signClaim(claim *core.Claim, checkRevLink string) ([]byte, error) {
-	claimSign, err := claims.SignClaimEntry(claim, isr.Identity.Sign)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to sign core claim")
-	}
-
-	signProof, err := claims.ConstructSignProof(isr.AuthClaim, claim, claimSign)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to construct sign proof")
-	}
-	signProof.IssuerData.CredentialStatus = &verifiable.CredentialStatus{
-		ID:              checkRevLink,
-		Type:            verifiable.SparseMerkleTreeProof,
-		RevocationNonce: isr.AuthClaim.CoreClaim.GetRevocationNonce(),
-	}
-
-	signProofRaw, err := json.Marshal(signProof)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal signature proof")
-	}
-
-	return signProofRaw, nil
 }

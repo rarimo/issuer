@@ -8,18 +8,20 @@ import (
 	"github.com/iden3/go-schema-processor/verifiable"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
 )
 
 func (iden *Identity) GenerateMTP(
 	ctx context.Context,
 	claim *core.Claim,
+	issuerData verifiable.IssuerData,
 ) ([]byte, error) {
 	if claim == nil {
 		return nil, errors.New("failed to generate proof, claim is nil")
 	}
 
-	lastCommittedState, lastCommittedStateRaw, err := iden.GetLatestState()
+	lastCommittedState, _, err := iden.GetLatestState()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get latest committed state")
 	}
@@ -32,38 +34,16 @@ func (iden *Identity) GenerateMTP(
 		return nil, ErrClaimWasNotPublishedYet
 	}
 
-	lastCommittedStateHash, err := lastCommittedState.StateHash()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get latest committed state hash")
-	}
-
 	coreClaimHex, err := claim.Hex()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse core claim hex")
 	}
 
 	mtProof := verifiable.Iden3SparseMerkleProof{
-		Type: verifiable.Iden3SparseMerkleProofType,
-		MTP:  inclusionProof,
-		IssuerData: verifiable.IssuerData{
-			ID: iden.Identifier.String(),
-			State: verifiable.State{
-				RootOfRoots:        strToPtr(lastCommittedState.RootsTreeRoot.Hex()),
-				ClaimsTreeRoot:     strToPtr(lastCommittedState.ClaimsTreeRoot.Hex()),
-				RevocationTreeRoot: strToPtr(lastCommittedState.RevocationsTreeRoot.Hex()),
-				Value:              strToPtr(lastCommittedStateHash.Hex()),
-			},
-			MTP: inclusionProof,
-		},
-		CoreClaim: coreClaimHex,
-	}
-
-	if lastCommittedStateRaw != nil && lastCommittedStateRaw.TxID != "" {
-		blockTimestamp := int(lastCommittedStateRaw.BlockTimestamp)
-		blockNumber := int(lastCommittedStateRaw.BlockNumber)
-		mtProof.IssuerData.State.TxID = &lastCommittedStateRaw.TxID
-		mtProof.IssuerData.State.BlockTimestamp = &blockTimestamp
-		mtProof.IssuerData.State.BlockNumber = &blockNumber
+		Type:       verifiable.Iden3SparseMerkleProofType,
+		MTP:        inclusionProof,
+		IssuerData: issuerData,
+		CoreClaim:  coreClaimHex,
 	}
 
 	proofRaw, err := json.Marshal(mtProof)
@@ -72,6 +52,91 @@ func (iden *Identity) GenerateMTP(
 	}
 
 	return proofRaw, nil
+}
+
+func (iden *Identity) GenerateSignatureProof(
+	claim *core.Claim,
+	issuerData verifiable.IssuerData,
+) ([]byte, error) {
+	signature, err := claims.SignClaimEntry(claim, iden.Sign)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to sign core claim")
+	}
+
+	coreClaimHex, err := claim.Hex()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get hex from auth core claim")
+	}
+
+	signProof := &verifiable.BJJSignatureProof2021{
+		Type:       verifiable.BJJSignatureProofType,
+		Signature:  signature,
+		CoreClaim:  coreClaimHex,
+		IssuerData: issuerData,
+	}
+
+	signProofRaw, err := json.Marshal(signProof)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal signature proof")
+	}
+
+	return signProofRaw, nil
+}
+
+func (iden *Identity) CompactIssuerData(ctx context.Context, checkRevLink string) (*verifiable.IssuerData, error) {
+	lastCommittedState, lastCommittedStateRaw, err := iden.GetLatestState()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get latest committed state")
+	}
+
+	lastCommittedStateHash, err := lastCommittedState.StateHash()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get latest committed state hash")
+	}
+
+	authCoreClaimHex, err := iden.AuthClaim.CoreClaim.Claim.Hex()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get hex from auth core claim")
+	}
+
+	authInclusionProof, err := iden.State.GetInclusionProof(
+		ctx,
+		iden.AuthClaim.CoreClaim.Claim,
+		lastCommittedState.ClaimsTreeRoot,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate inclusion proof")
+	}
+	if !authInclusionProof.Existence {
+		return nil, ErrClaimWasNotPublishedYet
+	}
+
+	issuerData := verifiable.IssuerData{
+		ID: iden.Identifier.String(),
+		State: verifiable.State{
+			RootOfRoots:        strToPtr(lastCommittedState.RootsTreeRoot.Hex()),
+			ClaimsTreeRoot:     strToPtr(lastCommittedState.ClaimsTreeRoot.Hex()),
+			RevocationTreeRoot: strToPtr(lastCommittedState.RevocationsTreeRoot.Hex()),
+			Value:              strToPtr(lastCommittedStateHash.Hex()),
+		},
+		AuthCoreClaim: authCoreClaimHex,
+		MTP:           authInclusionProof,
+		CredentialStatus: &verifiable.CredentialStatus{
+			ID:              checkRevLink,
+			Type:            verifiable.SparseMerkleTreeProof,
+			RevocationNonce: iden.AuthClaim.CoreClaim.GetRevocationNonce(),
+		},
+	}
+
+	if lastCommittedStateRaw != nil && lastCommittedStateRaw.TxID != "" {
+		blockTimestamp := int(lastCommittedStateRaw.BlockTimestamp)
+		blockNumber := int(lastCommittedStateRaw.BlockNumber)
+		issuerData.State.TxID = &lastCommittedStateRaw.TxID
+		issuerData.State.BlockTimestamp = &blockTimestamp
+		issuerData.State.BlockNumber = &blockNumber
+	}
+
+	return &issuerData, nil
 }
 
 func (iden *Identity) GetLatestState() (*state.CommittedState, *data.CommittedState, error) {

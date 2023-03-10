@@ -16,20 +16,23 @@ func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) (err e
 		return errors.Wrap(err, "failed to create revocation check url")
 	}
 
-	isr.AuthClaim.MTP, err = isr.GenerateMTP(ctx, isr.AuthClaim.CoreClaim.Claim)
+	issuerData, err := isr.CompactIssuerData(
+		ctx,
+		fmt.Sprint(isr.baseURL, claims.CredentialStatusCheckURL, isr.AuthClaim.CoreClaim.GetRevocationNonce()),
+	)
 	if err != nil {
-		return errors.Wrap(err, "failed to generate auth claim inclusion proof")
+		return errors.Wrap(err, "failed to compact issuer data")
 	}
 
-	claim.SignatureProof, err = isr.signClaim(
+	claim.SignatureProof, err = isr.GenerateSignatureProof(
 		claim.CoreClaim.Claim,
-		fmt.Sprint(isr.baseURL, claims.CredentialStatusCheckURL, claim.CoreClaim.GetRevocationNonce()),
+		*issuerData,
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to get signature proof")
 	}
 
-	claim.MTP, err = isr.GenerateMTP(ctx, claim.CoreClaim.Claim)
+	claim.MTP, err = isr.GenerateMTP(ctx, claim.CoreClaim.Claim, *issuerData)
 	if err != nil {
 		if errors.Is(err, identity.ErrClaimWasNotPublishedYet) {
 			return nil
