@@ -13,11 +13,11 @@ type ClaimsQ struct {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *ClaimsQ) Get(id uint64) (*data.Claim, error) {
+func (_m *ClaimsQ) Get(id string) (*data.Claim, error) {
 	ret := _m.Called(id)
 
 	var r0 *data.Claim
-	if rf, ok := ret.Get(0).(func(uint64) *data.Claim); ok {
+	if rf, ok := ret.Get(0).(func(string) *data.Claim); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
@@ -26,7 +26,7 @@ func (_m *ClaimsQ) Get(id uint64) (*data.Claim, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(uint64) error); ok {
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)

@@ -7,4 +7,9 @@ properties:
     type: boolean
     format: bool
     description: Flag that contains information about membership
-    example: true
+    example: 1
+  serial_number:
+    type: boolean
+    format: bool
+    description: Claim's serial number
+    example: 1

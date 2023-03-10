@@ -16,7 +16,7 @@ import (
 type IssueClaimRequest struct {
 	UserDID    *core.DID
 	ClaimType  claimResources.ClaimSchemaType
-	Expiration time.Time
+	Expiration *time.Time
 	Credential []byte
 }
 
@@ -45,7 +45,7 @@ func NewIssueClaim(r *http.Request, issuerID string) (*IssueClaimRequest, error)
 
 	schemaType := claimResources.ClaimSchemaTypeList[requestRaw.ClaimType]
 	if err := validation.Validate(
-		requestRaw.Body.Data.Attributes.Credential,
+		requestRaw.Body.Data.Attributes.CredentialSubject,
 		validation.By(
 			claimResources.ClaimSchemaList[schemaType].ClaimDataValidateFunc,
 		),
@@ -54,13 +54,13 @@ func NewIssueClaim(r *http.Request, issuerID string) (*IssueClaimRequest, error)
 	}
 
 	parseData, err := claimResources.ClaimSchemaList[schemaType].ClaimDataParseFunc(
-		requestRaw.Body.Data.Attributes.Credential,
+		requestRaw.Body.Data.Attributes.CredentialSubject,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse kyc full name data")
 	}
 
-	requestRaw.Body.Data.Attributes.Credential = parseData
+	requestRaw.Body.Data.Attributes.CredentialSubject = parseData
 
 	return requestRaw.parse(), nil
 }
@@ -75,10 +75,14 @@ func (req *issueClaimRequestRaw) validate(issuerID string) error {
 			req.ClaimType, validation.Required, validation.By(MustBeClaimType),
 		),
 		"data/attributes/credential": validation.Validate(
-			req.Body.Data.Attributes.Credential, validation.Required,
+			req.Body.Data.Attributes.CredentialSubject, validation.Required,
 		),
 		"data/attributes/expiration": validation.Validate(
-			req.Body.Data.Attributes.Expiration, validation.Required, validation.By(MustBeValidRFC3339),
+			req.Body.Data.Attributes.Expiration,
+			validation.When(
+				!validation.IsEmpty(req.Body.Data.Attributes.Expiration),
+				validation.By(MustBeValidRFC3339),
+			),
 		),
 	}.Filter()
 }
@@ -115,10 +119,14 @@ func (req *issueClaimRequestRaw) parse() *IssueClaimRequest {
 	_ = userID.UnmarshalText([]byte(req.UserID))
 	did, _ := core.ParseDIDFromID(userID)
 
-	schemaData, _ := req.Body.Data.Attributes.Credential.MarshalJSON()
+	schemaData, _ := req.Body.Data.Attributes.CredentialSubject.MarshalJSON()
 	schemaDataTrimmed, _ := jsonRawTrimSpaces(schemaData)
 
-	expiration, _ := time.Parse(time.RFC3339, req.Body.Data.Attributes.Expiration)
+	var expiration *time.Time
+	if req.Body.Data.Attributes.Expiration != "" {
+		parsedExpiration, _ := time.Parse(time.RFC3339, req.Body.Data.Attributes.Expiration)
+		expiration = &parsedExpiration
+	}
 
 	return &IssueClaimRequest{
 		Expiration: expiration,

@@ -7,7 +7,7 @@ package resources
 import "encoding/json"
 
 type IssueClaimAttributes struct {
-	Credential json.RawMessage `json:"credential"`
+	CredentialSubject json.RawMessage `json:"credential_subject"`
 	// The claim expiration date in RFC3339 format
 	Expiration string `json:"expiration"`
 }

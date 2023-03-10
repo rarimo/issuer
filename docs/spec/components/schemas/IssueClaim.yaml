@@ -8,17 +8,16 @@ allOf:
       attributes:
         type: object
         required:
-          - credential
+          - credential_subject
           - expiration
         properties:
-          credential:
+          credential_subject:
             oneOf:
-              - $ref: '#/components/schemas/KYCFullNameCredentialsSchema'
               - $ref: '#/components/schemas/QDAOMembership'
             format: json.RawMessage
             example:
-              first_name: David
-              second_name: Alabama
+              is_member: 1
+              serial_number: 1
           expiration:
             type: string
             format: string

@@ -20,7 +20,7 @@ func IssueClaim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claimID, err := Issuer(r).IssueClaim(r.Context(), req.UserDID, &req.Expiration, req.ClaimType, req.Credential)
+	claimID, err := Issuer(r).IssueClaim(r.Context(), req.UserDID, req.Expiration, req.ClaimType, req.Credential)
 	switch {
 	case errors.Is(err, schemas.ErrValidationData):
 		Log(r).WithField("reason", err).Debug("Bad request")
