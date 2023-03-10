@@ -174,7 +174,7 @@ func (isr *issuer) GetRevocationStatus(
 }
 
 func (isr *issuer) GetIdentifier() string {
-	return isr.Identifier.String()
+	return isr.Identifier.ID.String()
 }
 
 func (isr *issuer) RevokeClaim(

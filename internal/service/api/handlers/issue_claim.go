@@ -13,7 +13,7 @@ import (
 )
 
 func IssueClaim(w http.ResponseWriter, r *http.Request) {
-	req, err := requests.NewIssueClaim(r)
+	req, err := requests.NewIssueClaim(r, Issuer(r).GetIdentifier())
 	if err != nil {
 		Log(r).WithField("reason", err).Debug("Bad request")
 		ape.RenderErr(w, problems.BadRequest(err)...)

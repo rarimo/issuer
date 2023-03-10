@@ -72,6 +72,10 @@ func (p *publisher) PublishState(
 			zkpArgs.proofA, zkpArgs.proofB, zkpArgs.proofC,
 		)
 		if err != nil {
+			if err := p.setStatusFailed("", err.Error(), committedState); err != nil {
+				return errors.Wrap(err, "failed to set status failed in db")
+			}
+
 			return errors.Wrap(err, "failed to call transit state contract method")
 		}
 
@@ -117,7 +121,7 @@ func (p *publisher) processPreviousSessionCommit() error {
 		return errors.Wrap(err, "failed to select unprocessed committed states from db")
 	}
 
-	for i, unprocessedState := range unprocessedStateList {
+	for _, unprocessedState := range unprocessedStateList {
 		unprocessedStateHash, err := getStateHash(unprocessedState)
 		if err != nil {
 			return errors.Wrap(err, "failed to get unprocessed state hash")
@@ -126,10 +130,9 @@ func (p *publisher) processPreviousSessionCommit() error {
 		_, err = p.stateStoreContract.GetStateInfoByState(nil, unprocessedStateHash)
 		if err != nil {
 			if isStateDoesntExist(err) {
-				unprocessedState.Status = data.StatusFailed
-				err = p.committedStatesQ.Update(&unprocessedStateList[i])
+				err = p.setStatusFailed("", err.Error(), &unprocessedState)
 				if err != nil {
-					return errors.Wrap(err, "failed to update unprocessed state status to failed")
+					return errors.Wrap(err, "failed to set status failed in db")
 				}
 
 				continue
@@ -138,7 +141,7 @@ func (p *publisher) processPreviousSessionCommit() error {
 		}
 
 		unprocessedState.Status = data.StatusCompleted
-		err = p.committedStatesQ.Update(&unprocessedStateList[i])
+		err = p.committedStatesQ.Update(&unprocessedState)
 		if err != nil {
 			return errors.Wrap(err, "failed to update unprocessed state status to complete")
 		}
@@ -148,9 +151,9 @@ func (p *publisher) processPreviousSessionCommit() error {
 }
 
 func getStateHash(state data.CommittedState) (*big.Int, error) {
-	var claimsTreeHash *merkletree.Hash
-	var revocationsTreeHash *merkletree.Hash
-	var rootsTreeHash *merkletree.Hash
+	var claimsTreeHash merkletree.Hash
+	var revocationsTreeHash merkletree.Hash
+	var rootsTreeHash merkletree.Hash
 
 	copy(claimsTreeHash[:], state.ClaimsTreeRoot)
 	copy(revocationsTreeHash[:], state.RevocationsTreeRoot)

@@ -24,7 +24,7 @@ type Claim struct {
 	Credential     []byte     `db:"data"              structs:"data"`
 	CoreClaim      *CoreClaim `db:"core_claim"        structs:"-"`
 	MTP            []byte     `db:"-"                 structs:"-"`
-	SignatureProof []byte     `db:"signature_proof"   structs:"signature_proof"`
+	SignatureProof []byte     `db:"-"                 structs:"-"`
 	UserID         string     `db:"user_id"           structs:"user_id"`
 }
 

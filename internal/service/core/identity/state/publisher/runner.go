@@ -35,6 +35,12 @@ func (p *publisher) runner(ctx context.Context, publishStateInfo *publishedState
 			}
 			return nil
 		}
+
+		err = p.setStatusFailed(publishStateInfo.Tx.Hash().Hex(), err.Error(), publishStateInfo.CommittedState)
+		if err != nil {
+			return errors.Wrap(err, "failed to set status failed in db")
+		}
+
 		return errors.Wrap(err, "failed to wait mined tx")
 	}
 

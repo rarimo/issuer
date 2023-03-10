@@ -20,7 +20,6 @@ CREATE TABLE claims(
    revoked           BOOLEAN,
    data              BYTEA,
    core_claim        BYTEA                    NOT NULL,
-   signature_proof   BYTEA,
    user_id           VARCHAR(42)              NOT NULL
 );
 

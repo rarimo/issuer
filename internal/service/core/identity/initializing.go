@@ -48,37 +48,6 @@ func (iden *Identity) generateNewIdentity(ctx context.Context) error {
 	return nil
 }
 
-func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *core.Claim) error {
-	if iden.babyJubJubPrivateKey == nil {
-		return errors.New("error generating new identity, babyJubJubPrivateKey is nil")
-	}
-
-	authClaimData, err := claims.GenerateAuthClaimData(iden.babyJubJubPrivateKey.Public())
-	if err != nil {
-		return errors.Wrap(err, "failed to generate auth claim data")
-	}
-
-	authClaim := &data.Claim{
-		CoreClaim:  data.NewCoreClaim(coreAuthClaim),
-		SchemaType: claims.AuthBJJCredentialClaimType,
-		Credential: authClaimData,
-	}
-
-	authClaim.MTP, err = iden.GenerateMTP(ctx, coreAuthClaim)
-	if err != nil {
-		return errors.Wrap(err, "failed to generate proof")
-	}
-
-	err = iden.State.ClaimsQ.Insert(authClaim)
-	if err != nil {
-		return errors.Wrap(err, "failed to insert the auth claim to the db")
-	}
-
-	iden.AuthClaim = authClaim
-
-	return nil
-}
-
 func (iden *Identity) parseIdentity(
 	ctx context.Context,
 	authClaim *data.Claim,
@@ -118,6 +87,37 @@ func (iden *Identity) parseIdentity(
 	iden.log.
 		WithField("did", iden.Identifier.String()).
 		Infof("The Identity successfully loaded")
+
+	return nil
+}
+
+func (iden *Identity) saveAuthClaimModel(ctx context.Context, coreAuthClaim *core.Claim) error {
+	if iden.babyJubJubPrivateKey == nil {
+		return errors.New("error generating new identity, babyJubJubPrivateKey is nil")
+	}
+
+	authClaimData, err := claims.GenerateAuthClaimData(iden.babyJubJubPrivateKey.Public())
+	if err != nil {
+		return errors.Wrap(err, "failed to generate auth claim data")
+	}
+
+	authClaim := &data.Claim{
+		CoreClaim:  data.NewCoreClaim(coreAuthClaim),
+		SchemaType: claims.AuthBJJCredentialClaimType,
+		Credential: authClaimData,
+	}
+
+	authClaim.MTP, err = iden.GenerateMTP(ctx, coreAuthClaim)
+	if err != nil {
+		return errors.Wrap(err, "failed to generate proof")
+	}
+
+	err = iden.State.ClaimsQ.Insert(authClaim)
+	if err != nil {
+		return errors.Wrap(err, "failed to insert the auth claim to the db")
+	}
+
+	iden.AuthClaim = authClaim
 
 	return nil
 }

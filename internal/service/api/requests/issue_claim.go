@@ -26,7 +26,7 @@ type issueClaimRequestRaw struct {
 	Body      resources.IssueClaimRequest
 }
 
-func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
+func NewIssueClaim(r *http.Request, issuerID string) (*IssueClaimRequest, error) {
 	requestBody := resources.IssueClaimRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
@@ -39,7 +39,7 @@ func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
 		Body:      requestBody,
 	}
 
-	if err := requestRaw.validate(); err != nil {
+	if err := requestRaw.validate(issuerID); err != nil {
 		return nil, err
 	}
 
@@ -66,10 +66,10 @@ func NewIssueClaim(r *http.Request) (*IssueClaimRequest, error) {
 }
 
 // nolint
-func (req *issueClaimRequestRaw) validate() error {
+func (req *issueClaimRequestRaw) validate(issuerID string) error {
 	return validation.Errors{
 		"path/{user-id}": validation.Validate(
-			req.UserID, validation.Required, validation.By(MustBeValidID),
+			req.UserID, validation.Required, validation.By(MustBeValidID), validation.NotIn(issuerID),
 		),
 		"path/{claim-type}": validation.Validate(
 			req.ClaimType, validation.Required, validation.By(MustBeClaimType),

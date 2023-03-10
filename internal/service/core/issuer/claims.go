@@ -120,7 +120,7 @@ func (isr *issuer) signClaim(claim *core.Claim, checkRevLink string) ([]byte, er
 	signProof.IssuerData.CredentialStatus = &verifiable.CredentialStatus{
 		ID:              checkRevLink,
 		Type:            verifiable.SparseMerkleTreeProof,
-		RevocationNonce: claim.GetRevocationNonce(),
+		RevocationNonce: isr.AuthClaim.CoreClaim.GetRevocationNonce(),
 	}
 
 	signProofRaw, err := json.Marshal(signProof)
