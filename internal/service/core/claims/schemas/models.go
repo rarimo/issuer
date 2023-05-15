@@ -16,7 +16,8 @@ var (
 )
 
 type Builder struct {
-	CachedSchemas map[string]Schema
+	SchemasBaseURL string
+	CachedSchemas  map[string]Schema
 }
 
 type Schema struct {

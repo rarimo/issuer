@@ -13,6 +13,7 @@ import (
 	"github.com/alecthomas/kingpin"
 	"gitlab.com/distributed_lab/kit/kv"
 	"gitlab.com/distributed_lab/logan/v3"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/config"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/api"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity"
@@ -31,7 +32,7 @@ func Run(args []string) bool {
 	cfg := config.New(kv.MustFromEnv())
 	log = cfg.Log()
 
-	app := kingpin.New("qid-issuer", "")
+	app := kingpin.New("issuer", "")
 
 	runCmd := app.Command("run", "run command")
 	serviceCmd := runCmd.Command("service", "run service")

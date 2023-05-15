@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: qid-issuer
+  title: issuer
   description: The claim issuer corresponding to the Iden3 protocol
 servers: []

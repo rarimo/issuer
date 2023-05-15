@@ -13,7 +13,7 @@ allOf:
         properties:
           credential_subject:
             oneOf:
-              - $ref: '#/components/schemas/QDAOMembership'
+              - $ref: '#/components/schemas/DAOMembership'
             format: json.RawMessage
             example:
               is_member: 1

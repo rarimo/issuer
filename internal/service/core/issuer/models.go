@@ -2,14 +2,15 @@ package issuer
 
 import (
 	"github.com/pkg/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/schemas"
 	identityPkg "gitlab.com/q-dev/q-id/issuer/internal/service/core/identity"
 )
 
 const (
-	ClaimIssueCallBackPath = "/integrations/qid-issuer/v1/claims/offers/callback"
-	GetClaimPath           = "/integrations/qid-issuer/v1/claims/"
+	ClaimIssueCallBackPath = "/integrations/issuer/v1/public/claims/offers/callback"
+	GetClaimPath           = "/integrations/issuer/v1/private/claims/"
 	basicAuthKeyPath       = "/auth/verification_key.json"
 )
 

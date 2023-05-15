@@ -6,12 +6,13 @@ import (
 	"github.com/go-chi/chi"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	core "github.com/iden3/go-iden3-core"
-	claimResources "gitlab.com/q-dev/q-id/resources/claim_resources"
+
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 )
 
 type ClaimRevocationRequest struct {
 	UserID    *core.ID
-	ClaimType claimResources.ClaimSchemaType
+	ClaimType claims.ClaimSchemaType
 }
 
 type claimRevocationRequestRaw struct {
@@ -51,6 +52,6 @@ func (req *claimRevocationRequestRaw) parse() *ClaimRevocationRequest {
 
 	return &ClaimRevocationRequest{
 		UserID:    userID,
-		ClaimType: claimResources.ClaimSchemaTypeList[req.ClaimType],
+		ClaimType: claims.ClaimSchemaTypeList[req.ClaimType],
 	}
 }

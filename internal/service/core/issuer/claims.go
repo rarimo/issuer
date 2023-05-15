@@ -10,16 +10,16 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/pkg/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	resources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
 func (isr *issuer) compactClaim(
 	ctx context.Context,
 	userDID *core.DID,
 	expiration *time.Time,
-	claimType resources.ClaimSchemaType,
+	claimType claims.ClaimSchemaType,
 	credentialSubjectRaw []byte,
 ) (*data.Claim, error) {
 	revNonce, err := claims.CryptoRandUint64()
@@ -56,7 +56,7 @@ func (isr *issuer) compactClaim(
 
 	return &data.Claim{
 		ID:         claimID,
-		SchemaType: claimType.ToRaw(),
+		ClaimType:  claimType.ToRaw(),
 		CoreClaim:  data.NewCoreClaim(coreClaim),
 		Credential: credentialRaw,
 		UserID:     userDID.ID.String(),
@@ -68,7 +68,7 @@ func (isr *issuer) newW3CCredential(
 	userDID *core.DID,
 	credentialSubjectRaw []byte,
 	expiration *time.Time,
-	claimType resources.ClaimSchemaType,
+	claimType claims.ClaimSchemaType,
 	credentialStatus verifiable.CredentialStatus,
 ) (*verifiable.W3CCredential, error) {
 	issuanceDate := time.Now()
@@ -85,7 +85,7 @@ func (isr *issuer) newW3CCredential(
 	credential.Issuer = isr.Identifier.String()
 	credential.CredentialStatus = credentialStatus
 	credential.CredentialSchema = verifiable.CredentialSchema{
-		ID:   resources.ClaimSchemaList[claimType].ClaimSchemaURL,
+		ID:   fmt.Sprint(isr.schemaBuilder.SchemasBaseURL, claims.ClaimSchemaList[claimType].ClaimSchemaURL),
 		Type: verifiable.JSONSchemaValidator2018,
 	}
 	credential.Context = []string{

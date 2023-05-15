@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/kit/pgdb"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 )
 
@@ -20,10 +21,6 @@ const (
 
 	descCreatedAtColumnName = "-" + createdAtColumnName
 )
-
-var sortColumns = map[string]string{
-	createdAtColumnName: createdAtColumnName,
-}
 
 type committedStatesQ struct {
 	db  *pgdb.DB

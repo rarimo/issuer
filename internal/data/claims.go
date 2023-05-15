@@ -19,7 +19,7 @@ type ClaimsQ interface {
 
 type Claim struct {
 	ID             string     `db:"id"                structs:"id"`
-	SchemaType     string     `db:"schema_type"       structs:"schema_type"`
+	ClaimType      string     `db:"schema_type"       structs:"schema_type"`
 	Revoked        bool       `db:"revoked"           structs:"revoked"`
 	Credential     []byte     `db:"data"              structs:"data"`
 	CoreClaim      *CoreClaim `db:"core_claim"        structs:"-"`

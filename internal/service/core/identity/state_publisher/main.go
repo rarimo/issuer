@@ -1,4 +1,4 @@
-package publisher
+package statepublisher
 
 import (
 	"context"
@@ -10,19 +10,19 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/data/pg"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state/publisher/contracts"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state_publisher/contracts"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/zkp"
 )
 
 type Publisher interface {
-	PublishState(ctx context.Context, stInfo *StateTransitionInfo, committedState *data.CommittedState) (string, error)
 	Run(ctx context.Context)
 }
 
-func NewPublisher(cfg *Config) (Publisher, error) {
-	stateStoreContract, err := contracts.NewStateStore(*cfg.EthConfig.StateStorageContract, cfg.EthConfig.EthClient)
+func New(cfg *Config, state *state.IdentityState) (Publisher, error) {
+	stateStorageContract, err := contracts.NewStateStorage(*cfg.EthConfig.StateStorageContract, cfg.EthConfig.EthClient)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new state store contract")
 	}
@@ -34,13 +34,15 @@ func NewPublisher(cfg *Config) (Publisher, error) {
 
 	publisherInstance := &publisher{
 		log:                cfg.Log,
-		committedStatesQ:   pg.NewCommittedStateQ(cfg.DB),
-		ethClient:          cfg.EthConfig.EthClient,
-		stateStoreContract: stateStoreContract,
-		privateKey:         cfg.EthConfig.PrivateKey,
-		address:            crypto.PubkeyToAddress(cfg.EthConfig.PrivateKey.PublicKey),
-		chainID:            chainID,
-		pendingQueue:       make(chan *publishedStateInfo),
+		stateStoreContract: stateStorageContract,
+		state:              state,
+		publishPeriod:      cfg.StatePublisher.PublishPeriod,
+		retryPeriod:        cfg.StatePublisher.RetryPeriod,
+
+		ethClient:  cfg.EthConfig.EthClient,
+		privateKey: cfg.EthConfig.PrivateKey,
+		address:    crypto.PubkeyToAddress(cfg.EthConfig.PrivateKey.PublicKey),
+		chainID:    chainID,
 	}
 
 	err = publisherInstance.processPreviousSessionCommit()
@@ -51,14 +53,14 @@ func NewPublisher(cfg *Config) (Publisher, error) {
 	return publisherInstance, nil
 }
 
-func (p *publisher) PublishState(
+func (p *publisher) sendTransaction(
 	ctx context.Context,
-	tsInfo *StateTransitionInfo,
+	tsInfo *state.StateTransitionInfo,
 	committedState *data.CommittedState,
-) (string, error) {
+) (*types.Transaction, error) {
 	zkpArgs, err := parseZKPArgs(tsInfo.ZKProof)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to parse SKProof to contract readable format")
+		return nil, errors.Wrap(err, "failed to parse SKProof to contract readable format")
 	}
 
 	var tx *types.Transaction
@@ -82,17 +84,60 @@ func (p *publisher) PublishState(
 		return nil
 	})
 	if err != nil {
-		return "", errors.Wrap(err, "failed to call retryChainCall")
+		return nil, errors.Wrap(err, "failed to call retryChainCall")
 	}
 
-	// Runner will wait while transaction will be mined
-	select {
-	case p.pendingQueue <- &publishedStateInfo{CommittedState: committedState, Tx: tx}:
-	default:
-		return "", nil
+	committedState.Status = data.StatusProcessing
+	err = p.state.DB.CommittedStatesQ().Update(committedState)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update committed state status to processing")
 	}
 
-	return tx.Hash().Hex(), nil
+	return tx, nil
+}
+
+func (p *publisher) waitTransaction(
+	ctx context.Context,
+	committedState *data.CommittedState,
+	tx *types.Transaction,
+) error {
+	receipt, err := p.waitMined(ctx, tx)
+	if err != nil {
+		if errors.Is(err, ErrTransactionFailed) {
+			p.log.WithField("reason", err.Error()).Info("Failed to wait mined tx")
+			err = p.setStatusFailed(tx.Hash().Hex(), err.Error(), committedState)
+			if err != nil {
+				return errors.Wrap(err, "failed to set status failed in db")
+			}
+			return nil
+		}
+
+		err = p.setStatusFailed(tx.Hash().Hex(), err.Error(), committedState)
+		if err != nil {
+			return errors.Wrap(err, "failed to set status failed in db")
+		}
+
+		return errors.Wrap(err, "failed to wait mined tx")
+	}
+
+	block, err := p.ethClient.BlockByNumber(ctx, receipt.BlockNumber)
+	if err != nil {
+		p.log.WithError(err).Error("Failed to get ethereum block by number")
+	}
+
+	if block != nil {
+		committedState.TxID = receipt.TxHash.Hex()
+		committedState.BlockTimestamp = block.Time()
+		committedState.BlockNumber = block.NumberU64()
+	}
+
+	err = p.setStatusCompleted(ctx, receipt, committedState)
+	if err != nil {
+		return errors.Wrap(err, "failed to set status completed")
+	}
+
+	p.log.WithField("tx_hash", tx.Hash().Hex()).Info("State was successfully transited")
+	return nil
 }
 
 // nolint
@@ -116,7 +161,7 @@ func parseZKPArgs(zkp *zkp.ZKProof) (*contractReadableZKP, error) {
 }
 
 func (p *publisher) processPreviousSessionCommit() error {
-	unprocessedStateList, err := p.committedStatesQ.New().WhereStatus(data.StatusProcessing).Select()
+	unprocessedStateList, err := p.state.DB.CommittedStatesQ().WhereStatus(data.StatusProcessing).Select()
 	if err != nil {
 		return errors.Wrap(err, "failed to select unprocessed committed states from db")
 	}
@@ -141,7 +186,7 @@ func (p *publisher) processPreviousSessionCommit() error {
 		}
 
 		unprocessedState.Status = data.StatusCompleted
-		err = p.committedStatesQ.Update(&unprocessedState)
+		err = p.state.DB.CommittedStatesQ().Update(&unprocessedState)
 		if err != nil {
 			return errors.Wrap(err, "failed to update unprocessed state status to complete")
 		}

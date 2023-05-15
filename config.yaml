@@ -15,9 +15,11 @@ ethereum:
 
 issuer:
   base_url: "https://..."
+  schemas_base_url: "https://..."
 
 state_publisher:
-  retry_period: 5s
+  publish_period: 10s
+  retry_period: 30s
 
 identity:
   tree_depth: 40

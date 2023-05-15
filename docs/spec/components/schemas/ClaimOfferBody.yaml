@@ -7,7 +7,7 @@ properties:
     type: string
     format: string
     description: The callback url
-    example: 'https://qidissuer.com/integrations/qid-issuer/v1/claims/issue'
+    example: 'https://issuer.com/integrations/issuer/v1/claims/issue'
   credentials:
     type: array
     items:

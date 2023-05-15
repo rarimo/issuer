@@ -6,24 +6,28 @@ import (
 
 	"github.com/iden3/go-iden3-crypto/utils"
 	"github.com/pkg/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/config"
 	statePkg "gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state/publisher"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state_publisher"
 )
 
 func New(ctx context.Context, cfg config.Config) (*Identity, error) {
 	state, err := statePkg.NewIdentityState(ctx, statePkg.Config{
-		DB: cfg.DB(),
-		PublisherConfig: &publisher.Config{
-			DB:           cfg.DB(),
-			Log:          cfg.Log(),
-			EthConfig:    cfg.EthClient(),
-			RunnerPeriod: cfg.StatePublisher().RetryPeriod,
-		},
+		DB:             cfg.DB(),
 		IdentityConfig: cfg.Identity(),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize the identity state")
+	}
+
+	statePublisher, err := statepublisher.New(&statepublisher.Config{
+		Log:            cfg.Log(),
+		EthConfig:      cfg.EthClient(),
+		StatePublisher: cfg.StatePublisher(),
+	}, state)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize the state publisher")
 	}
 
 	identity := &Identity{
@@ -38,16 +42,24 @@ func New(ctx context.Context, cfg config.Config) (*Identity, error) {
 		return nil, errors.Wrap(err, "failed to init Identity")
 	}
 
+	identity.State.SetIdentityInfo(&statePkg.IdentityInfo{
+		BabyJubJubPrivateKey: identity.babyJubJubPrivateKey,
+		Identifier:           &identity.Identifier.ID,
+		AuthClaim:            identity.AuthClaim.CoreClaim.Claim,
+	})
+
+	go statePublisher.Run(ctx)
+
 	return identity, nil
 }
 
 func (iden *Identity) Init(ctx context.Context) error {
-	genesisStateRaw, err := iden.State.CommittedStateQ.GetGenesis()
+	genesisStateRaw, err := iden.State.DB.CommittedStatesQ().GetGenesis()
 	if err != nil {
 		return errors.Wrap(err, "failed to get genesis state")
 	}
 
-	authClaim, err := iden.State.ClaimsQ.GetAuthClaim()
+	authClaim, err := iden.State.DB.ClaimsQ().GetAuthClaim()
 	if err != nil {
 		return errors.Wrap(err, "failed to get auth claim")
 	}
@@ -72,23 +84,13 @@ func (iden *Identity) Init(ctx context.Context) error {
 		return errors.Wrap(err, "failed to parse Identity")
 	}
 
-	return nil
-}
-
-func (iden *Identity) PublishStateOnChain(ctx context.Context) (string, error) {
-	txHash, err := iden.State.PublishOnChain(ctx, &statePkg.IdentityInfo{
+	iden.State.SetIdentityInfo(&statePkg.IdentityInfo{
 		BabyJubJubPrivateKey: iden.babyJubJubPrivateKey,
 		Identifier:           &iden.Identifier.ID,
 		AuthClaim:            iden.AuthClaim.CoreClaim.Claim,
 	})
-	if err != nil {
-		if errors.Is(err, statePkg.ErrStateWasntChanged) {
-			return "", nil
-		}
-		return "", errors.Wrap(err, "failed to publish state on chain")
-	}
 
-	return txHash, nil
+	return nil
 }
 
 func (iden *Identity) Sign(singMessage *big.Int) ([]byte, error) {

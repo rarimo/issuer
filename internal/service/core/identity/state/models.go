@@ -9,9 +9,10 @@ import (
 	"github.com/iden3/go-merkletree-sql/v2"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	"gitlab.com/distributed_lab/logan/v3/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/config"
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state/publisher"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/zkp"
 )
 
 const (
@@ -25,23 +26,22 @@ var (
 )
 
 type IdentityState struct {
-	ClaimsQ         data.ClaimsQ
-	CommittedStateQ data.CommittedStatesQ
+	*IdentityInfo
+
+	DB              data.MasterQ
 	ClaimsTree      *merkletree.MerkleTree
 	RevocationsTree *merkletree.MerkleTree
 	RootsTree       *merkletree.MerkleTree
 
 	circuits     map[string][]byte
-	publisher    publisher.Publisher
 	circuitsPath string
 
 	*sync.Mutex
 }
 
 type Config struct {
-	DB              *pgdb.DB
-	PublisherConfig *publisher.Config
-	IdentityConfig  *config.IdentityConfig
+	DB             *pgdb.DB
+	IdentityConfig *config.IdentityConfig
 }
 
 type CommittedState struct {
@@ -68,6 +68,14 @@ type IdentityInfo struct {
 	BabyJubJubPrivateKey *babyjub.PrivateKey
 	Identifier           *core.ID
 	AuthClaim            *core.Claim
+}
+
+type StateTransitionInfo struct {
+	IsOldStateGenesis bool
+	Identifier        *core.ID
+	LatestState       *merkletree.Hash
+	NewState          *merkletree.Hash
+	ZKProof           *zkp.ZKProof
 }
 
 func (cs *CommittedState) ToRaw() *data.CommittedState {

@@ -13,17 +13,17 @@ import (
 	"github.com/iden3/iden3comm/packers"
 	"github.com/iden3/iden3comm/protocol"
 	"github.com/pkg/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/api/requests"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
-	resources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
 func (isr *issuer) CreateClaimOffer(
 	userDID *core.DID, claimID string,
 ) (*protocol.CredentialsOfferMessage, error) {
-	claim, err := isr.Identity.State.ClaimsQ.GetBySchemaType(claimID, userDID.ID.String())
+	claim, err := isr.Identity.State.DB.ClaimsQ().GetBySchemaType(claimID, userDID.ID.String())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get claim from db")
 	}
@@ -56,7 +56,7 @@ func (isr *issuer) IssueClaim(
 	ctx context.Context,
 	userDID *core.DID,
 	expiration *time.Time,
-	claimType resources.ClaimSchemaType,
+	claimType claims.ClaimSchemaType,
 	credentialRaw []byte,
 ) (string, error) {
 	claim, err := isr.compactClaim(ctx, userDID, expiration, claimType, credentialRaw)
@@ -69,7 +69,7 @@ func (isr *issuer) IssueClaim(
 		return "", errors.Wrap(err, "failed to get claim index and value hash")
 	}
 
-	err = isr.State.ClaimsQ.Insert(claim)
+	err = isr.State.DB.ClaimsQ().Insert(claim)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to insert claim into db")
 	}
@@ -94,7 +94,7 @@ func (isr *issuer) OfferCallback(
 		return nil, ErrClaimOfferIsNotExist
 	}
 
-	claim, err := isr.State.ClaimsQ.Get(request.FetchMessage.Body.ID)
+	claim, err := isr.State.DB.ClaimsQ().Get(request.FetchMessage.Body.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get claim from db")
 	}
@@ -137,7 +137,7 @@ func (isr *issuer) GetRevocationStatus(
 	ctx context.Context,
 	revID *big.Int,
 ) (*verifiable.RevocationStatus, error) {
-	lastCommittedStateRaw, err := isr.State.CommittedStateQ.WhereStatus(data.StatusCompleted).GetLatest()
+	lastCommittedStateRaw, err := isr.State.DB.CommittedStatesQ().WhereStatus(data.StatusCompleted).GetLatest()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get last committed state")
 	}
@@ -180,9 +180,9 @@ func (isr *issuer) GetIdentifier() string {
 func (isr *issuer) RevokeClaim(
 	ctx context.Context,
 	userID *core.ID,
-	schemaType resources.ClaimSchemaType,
+	schemaType claims.ClaimSchemaType,
 ) error {
-	claim, err := isr.State.ClaimsQ.GetBySchemaType(schemaType.ToRaw(), userID.String())
+	claim, err := isr.State.DB.ClaimsQ().GetBySchemaType(schemaType.ToRaw(), userID.String())
 	if err != nil {
 		return errors.Wrap(err, "failed to get claim from db")
 	}
@@ -202,7 +202,7 @@ func (isr *issuer) RevokeClaim(
 	}
 
 	claim.Revoked = true
-	err = isr.State.ClaimsQ.Update(claim)
+	err = isr.State.DB.ClaimsQ().Update(claim)
 	if err != nil {
 		return errors.Wrap(err, "failed to update claim in db")
 	}

@@ -15,7 +15,7 @@ RUN CGO_ENABLED=1 GOOS=linux go build -o /usr/local/bin/issuer /go/src/gitlab.co
 
 FROM alpine:3.16.0
 
-RUN apk add --no-cache libstdc++ gcompat libgomp ca-certificates
+RUN apk --update add --no-cache libstdc++ gcompat libgomp ca-certificates
 
 WORKDIR /
 

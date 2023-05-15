@@ -6,6 +6,7 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"gitlab.com/distributed_lab/logan/v3/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
@@ -32,7 +33,7 @@ func (iden *Identity) generateNewIdentity(ctx context.Context) error {
 		return errors.Wrap(err, "failed to save auth claim to db")
 	}
 
-	err = iden.State.CommittedStateQ.Insert((&state.CommittedState{
+	err = iden.State.DB.CommittedStatesQ().Insert((&state.CommittedState{
 		Status:              data.StatusCompleted,
 		CommitInfo:          nil,
 		CreatedAt:           time.Now(),
@@ -98,11 +99,11 @@ func (iden *Identity) saveAuthClaimModel(coreAuthClaim *core.Claim) error {
 
 	authClaim := &data.Claim{
 		CoreClaim:  data.NewCoreClaim(coreAuthClaim),
-		SchemaType: claims.AuthBJJCredentialClaimType,
+		ClaimType:  claims.AuthBJJCredentialClaimType,
 		Credential: authClaimData,
 	}
 
-	err = iden.State.ClaimsQ.Insert(authClaim)
+	err = iden.State.DB.ClaimsQ().Insert(authClaim)
 	if err != nil {
 		return errors.Wrap(err, "failed to insert the auth claim to the db")
 	}

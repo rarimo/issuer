@@ -5,9 +5,9 @@ import "time"
 type ClaimsOffersQ interface {
 	New() ClaimsOffersQ
 
-	Get(id string) (*ClaimOffer, error)
-	Insert(claimOffer *ClaimOffer) error
-	Update(claimOffer *ClaimOffer) error
+	Get(string) (*ClaimOffer, error)
+	Insert(*ClaimOffer) error
+	Update(*ClaimOffer) error
 }
 
 type ClaimOffer struct {

@@ -15,26 +15,28 @@ import (
 	"github.com/iden3/go-rapidsnark/prover"
 	"github.com/iden3/go-rapidsnark/witness"
 	"github.com/pkg/errors"
+
 	dataPkg "gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state/publisher"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/zkp"
 )
 
-func (is *IdentityState) PublishOnChain(ctx context.Context, identityInfo *IdentityInfo) (string, error) {
+func (is *IdentityState) GenerateStateCommitment(
+	ctx context.Context,
+) (*StateTransitionInfo, *dataPkg.CommittedState, error) {
 	is.Lock()
 	defer is.Unlock()
 
-	processingStates, err := is.CommittedStateQ.New().WhereStatus(dataPkg.StatusProcessing).Select()
+	processingStates, err := is.DB.CommittedStatesQ().WhereStatus(dataPkg.StatusProcessing).Select()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to select committed states")
+		return nil, nil, errors.Wrap(err, "failed to select committed states")
 	}
 	if len(processingStates) > 0 {
-		return processingStates[0].TxID, nil
+		return nil, nil, nil
 	}
 
-	transitionInfo, err := is.prepareTransitionInfo(ctx, identityInfo)
+	transitionInfo, err := is.PrepareTransitionInfo(ctx)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to prepare state transition info")
+		return nil, nil, errors.Wrap(err, "failed to prepare state transition info")
 	}
 
 	newStateCommit := (&CommittedState{
@@ -46,24 +48,16 @@ func (is *IdentityState) PublishOnChain(ctx context.Context, identityInfo *Ident
 		RevocationsTreeRoot: is.RevocationsTree.Root(),
 	}).ToRaw()
 
-	err = is.CommittedStateQ.Insert(newStateCommit)
+	err = is.DB.CommittedStatesQ().Insert(newStateCommit)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to insert committed state into db")
+		return nil, nil, errors.Wrap(err, "failed to insert committed state into db")
 	}
 
-	txHash, err := is.publisher.PublishState(ctx, transitionInfo, newStateCommit)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to publish state with publisher")
-	}
-
-	return txHash, nil
+	return transitionInfo, newStateCommit, nil
 }
 
-func (is *IdentityState) prepareTransitionInfo(
-	ctx context.Context,
-	identityInfo *IdentityInfo,
-) (*publisher.StateTransitionInfo, error) {
-	oldStateRaw, err := is.CommittedStateQ.New().WhereStatus(dataPkg.StatusCompleted).GetLatest()
+func (is *IdentityState) PrepareTransitionInfo(ctx context.Context) (*StateTransitionInfo, error) {
+	oldStateRaw, err := is.DB.CommittedStatesQ().New().WhereStatus(dataPkg.StatusCompleted).GetLatest()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the last committed state from db")
 	}
@@ -97,7 +91,7 @@ func (is *IdentityState) prepareTransitionInfo(
 		return nil, ErrStateWasntChanged
 	}
 
-	transitionInputs, err := is.prepareTransitionInputs(ctx, identityInfo, oldState, newStateHash)
+	transitionInputs, err := is.prepareTransitionInputs(ctx, oldState, newStateHash)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to prepare state transition inputs")
 	}
@@ -107,8 +101,8 @@ func (is *IdentityState) prepareTransitionInfo(
 		return nil, errors.Wrap(err, "failed to generate state transition proof")
 	}
 
-	return &publisher.StateTransitionInfo{
-		Identifier:        identityInfo.Identifier,
+	return &StateTransitionInfo{
+		Identifier:        is.Identifier,
 		LatestState:       oldStateHash,
 		NewState:          newStateHash,
 		IsOldStateGenesis: oldState.IsGenesis,
@@ -118,7 +112,6 @@ func (is *IdentityState) prepareTransitionInfo(
 
 func (is *IdentityState) prepareTransitionInputs(
 	ctx context.Context,
-	identityInfo *IdentityInfo,
 	oldState *CommittedState,
 	newStateHash *merkletree.Hash,
 ) ([]byte, error) {
@@ -134,19 +127,19 @@ func (is *IdentityState) prepareTransitionInputs(
 		RootOfRoots:    is.RootsTree.Root(),
 	}
 
-	authInclusionProof, err := is.GetInclusionProof(ctx, identityInfo.AuthClaim, oldState.ClaimsTreeRoot)
+	authInclusionProof, err := is.GetInclusionProof(ctx, is.AuthClaim, oldState.ClaimsTreeRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the auth claim inclusion proof")
 	}
 
-	authNewInclusionProof, err := is.GetInclusionProof(ctx, identityInfo.AuthClaim, newStateCircuits.ClaimsRoot)
+	authNewInclusionProof, err := is.GetInclusionProof(ctx, is.AuthClaim, newStateCircuits.ClaimsRoot)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get the auth claim new inclusion proof")
 	}
 
 	authNonRevocationProof, _, err := is.RevocationsTree.GenerateProof(
 		ctx,
-		big.NewInt(int64(identityInfo.AuthClaim.GetRevocationNonce())),
+		big.NewInt(int64(is.AuthClaim.GetRevocationNonce())),
 		oldState.RevocationsTreeRoot,
 	)
 	if err != nil {
@@ -159,15 +152,15 @@ func (is *IdentityState) prepareTransitionInputs(
 	}
 
 	transitionInputs, err := circuits.StateTransitionInputs{
-		ID:                      identityInfo.Identifier,
+		ID:                      is.Identifier,
 		NewTreeState:            newStateCircuits,
 		OldTreeState:            oldStateCircuits,
 		IsOldStateGenesis:       oldState.IsGenesis,
-		AuthClaim:               identityInfo.AuthClaim,
+		AuthClaim:               is.AuthClaim,
 		AuthClaimIncMtp:         authInclusionProof,
 		AuthClaimNonRevMtp:      authNonRevocationProof,
 		AuthClaimNewStateIncMtp: authNewInclusionProof,
-		Signature:               identityInfo.BabyJubJubPrivateKey.SignPoseidon(hashOldAndNewStates),
+		Signature:               is.BabyJubJubPrivateKey.SignPoseidon(hashOldAndNewStates),
 	}.InputsMarshal()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal state transition inputs")

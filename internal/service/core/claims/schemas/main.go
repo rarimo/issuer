@@ -12,26 +12,27 @@ import (
 	"github.com/iden3/go-schema-processor/utils"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/pkg/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	resources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
-func NewBuilder(ctx context.Context) (*Builder, error) {
+func NewBuilder(ctx context.Context, schemasBaseUrl string) (*Builder, error) {
 	builder := &Builder{
-		CachedSchemas: map[string]Schema{},
+		SchemasBaseURL: schemasBaseUrl,
+		CachedSchemas:  map[string]Schema{},
 	}
 
-	if err := builder.loadSchemas(ctx); err != nil {
+	if err := builder.loadSchemas(ctx, schemasBaseUrl); err != nil {
 		return nil, errors.Wrap(err, "failed to load schemas")
 	}
 
 	return builder, nil
 }
 
-func (b *Builder) loadSchemas(ctx context.Context) error {
-	for schemaType, schema := range resources.ClaimSchemaList {
+func (b *Builder) loadSchemas(ctx context.Context, schemasBaseUrl string) error {
+	for schemaType, schema := range claims.ClaimSchemaList {
 		schemaBytes, _, err := (&loaders.HTTP{
-			URL: schema.ClaimSchemaURL,
+			URL: fmt.Sprint(schemasBaseUrl, schema.ClaimSchemaURL),
 		}).Load(ctx)
 		if err != nil {
 			return errors.Wrap(err, "failed to load schema")
@@ -59,7 +60,7 @@ func (b *Builder) loadSchemas(ctx context.Context) error {
 
 func (b *Builder) CreateCoreClaim(
 	ctx context.Context,
-	schemaType resources.ClaimSchemaType,
+	schemaType claims.ClaimSchemaType,
 	credential *verifiable.W3CCredential,
 	revNonce uint64,
 ) (*core.Claim, error) {

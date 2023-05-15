@@ -7,7 +7,8 @@ import (
 )
 
 type IssuerConfig struct {
-	BaseURL string `fig:"base_url,required"`
+	BaseURL        string `fig:"base_url,required"`
+	SchemasBaseURL string `fig:"schemas_base_url,required"`
 }
 
 func (c *config) Issuer() *IssuerConfig {

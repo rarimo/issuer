@@ -7,6 +7,7 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"gitlab.com/distributed_lab/logan/v3/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
@@ -140,7 +141,7 @@ func (iden *Identity) CompactIssuerData(ctx context.Context, checkRevLink string
 }
 
 func (iden *Identity) GetLatestState() (*state.CommittedState, *data.CommittedState, error) {
-	lastCommittedStateRaw, err := iden.State.CommittedStateQ.WhereStatus(data.StatusCompleted).GetLatest()
+	lastCommittedStateRaw, err := iden.State.DB.CommittedStatesQ().WhereStatus(data.StatusCompleted).GetLatest()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get last committed state from db")
 	}

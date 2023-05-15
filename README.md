@@ -1,12 +1,11 @@
-# qid-issuer
+# issuer
 
 ## Description
 
-This is a QID Issuer service that follows an [Iden3 protocol](https://docs.iden3.io/).
+This is an Issuer service that follows an [Iden3 protocol](https://docs.iden3.io/).
 It provides an ability to create an Identity and issue different claims.
 You can think of a claim as a statement: something an Issuer says about another subject.
 For example, when you apply for a job, the employer may ask you to provide a reference from your previous employer.
-In the same way QID issuer can issue QID DAO Membership claim that proves that you are a member of QID DAO.
 
 1) [Identity generation](#identity-generation)
 2) [Claim issuance](#claim-issuance)
@@ -241,7 +240,7 @@ Issuer's Claims Merkle Tree.
                 "164064612995325705517108283320576642342848431716673310363948244017845964996"
             ]
         },
-        "revocation_status": "https://8c44-193-193-222-99.eu.ngrok.io/integrations/qid-issuer/v1/claims/revocations/check/2189031102",
+        "revocation_status": "https://8c44-193-193-222-99.eu.ngrok.io/integrations/issuer/v1/claims/revocations/check/2189031102",
         "state": {
             "claims_tree_root": "6db7cd72af198b3d87a96cc226e6252c38168d41c130449760c33f1e65ce721d",
             "value": "1034dbf7e4a6808220f0d1b2872923082bc87702b46d7e747d15fe40431fba11"
@@ -256,8 +255,8 @@ Issuer's Claims Merkle Tree.
 ## Install
 
   ```
-  git clone gitlab.com/q-dev/q-id/issuer
-  cd qid-issuer
+  git clone <repo_url>/issuer
+  cd issuer
   go build main.go
   export KV_VIPER_FILE=./config.yaml
   ./main migrate up

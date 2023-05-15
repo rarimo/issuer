@@ -1,55 +1,56 @@
-package publisher
+package statepublisher
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/running"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
 )
 
 func (p *publisher) Run(ctx context.Context) {
+	fmt.Println(p.publishPeriod)
+	ticker := time.NewTicker(p.publishPeriod)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case publishStateInfo := <-p.pendingQueue:
+		case <-ticker.C:
 			running.UntilSuccess(ctx, p.log, statePublisherRunnerName,
 				func(ctx context.Context) (bool, error) {
-					return true, p.runner(ctx, publishStateInfo)
-				}, p.runnerPeriod, p.runnerPeriod,
+					return true, p.runner(ctx)
+				}, p.retryPeriod, p.retryPeriod,
 			)
 		}
 	}
 }
 
-func (p *publisher) runner(ctx context.Context, publishStateInfo *publishedStateInfo) error {
-	receipt, err := p.waitMined(ctx, publishStateInfo.Tx)
+func (p *publisher) runner(ctx context.Context) error {
+	stateTransitionInfo, stateCommit, err := p.state.GenerateStateCommitment(ctx)
 	if err != nil {
-		if errors.Is(err, ErrTransactionFailed) {
-			p.log.WithField("reason", err.Error()).Info("Failed to wait mined tx")
-			err = p.setStatusFailed(publishStateInfo.Tx.Hash().Hex(), err.Error(), publishStateInfo.CommittedState)
-			if err != nil {
-				return errors.Wrap(err, "failed to set status failed in db")
-			}
+		if errors.Is(err, state.ErrStateWasntChanged) {
 			return nil
 		}
 
-		err = p.setStatusFailed(publishStateInfo.Tx.Hash().Hex(), err.Error(), publishStateInfo.CommittedState)
-		if err != nil {
-			return errors.Wrap(err, "failed to set status failed in db")
-		}
-
-		return errors.Wrap(err, "failed to wait mined tx")
+		return errors.Wrap(err, "failed to generate state commitment")
 	}
 
-	err = p.setStatusCompleted(ctx, receipt, publishStateInfo.CommittedState)
+	tx, err := p.sendTransaction(ctx, stateTransitionInfo, stateCommit)
 	if err != nil {
-		return errors.Wrap(err, "failed to set status completed")
+		return errors.Wrap(err, "failed to send transaction")
 	}
 
-	p.log.WithField("tx_hash", publishStateInfo.Tx.Hash().Hex()).Info("State was successfully transited")
+	err = p.waitTransaction(ctx, stateCommit, tx)
+	if err != nil {
+		return errors.Wrap(err, "failed to wait transaction")
+	}
+
 	return nil
 }
 
@@ -58,7 +59,7 @@ func (p *publisher) setStatusFailed(txHash, reason string, committedState *data.
 	committedState.Status = data.StatusFailed
 	committedState.Message = reason
 
-	err := p.committedStatesQ.Update(committedState)
+	err := p.state.DB.CommittedStatesQ().Update(committedState)
 	if err != nil {
 		return errors.Wrap(err, "failed to update committed state in db")
 	}
@@ -81,7 +82,7 @@ func (p *publisher) setStatusCompleted(
 	committedState.BlockTimestamp = block.Time()
 	committedState.BlockNumber = block.NumberU64()
 
-	err = p.committedStatesQ.Update(committedState)
+	err = p.state.DB.CommittedStatesQ().Update(committedState)
 	if err != nil {
 		return errors.Wrap(err, "failed to update committed state in db")
 	}

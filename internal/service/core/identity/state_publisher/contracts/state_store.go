@@ -8,7 +8,7 @@ import (
 	"math/big"
 	"strings"
 
-	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -130,7 +130,7 @@ type StateStoreTransactorRaw struct {
 }
 
 // NewStateStore creates a new instance of StateStore, bound to a specific deployed contract.
-func NewStateStore(address common.Address, backend bind.ContractBackend) (*StateStore, error) {
+func NewStateStorage(address common.Address, backend bind.ContractBackend) (*StateStore, error) {
 	contract, err := bindStateStore(address, backend, backend, backend)
 	if err != nil {
 		return nil, err

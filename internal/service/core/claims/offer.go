@@ -10,8 +10,8 @@ import (
 	"github.com/iden3/iden3comm/packers"
 	"github.com/iden3/iden3comm/protocol"
 	"gitlab.com/distributed_lab/logan/v3/errors"
+
 	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	resources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
 func NewClaimOffer(callBackURL string, from, to *core.DID, claim *data.Claim) *protocol.CredentialsOfferMessage {
@@ -25,7 +25,7 @@ func NewClaimOffer(callBackURL string, from, to *core.DID, claim *data.Claim) *p
 			Credentials: []protocol.CredentialOffer{
 				protocol.CredentialOffer{
 					ID:          claim.ID,
-					Description: resources.ClaimSchemaList[resources.ClaimSchemaTypeList[claim.SchemaType]].ClaimSchemaName,
+					Description: ClaimSchemaList[ClaimSchemaTypeList[claim.ClaimType]].ClaimSchemaName,
 				},
 			},
 		},

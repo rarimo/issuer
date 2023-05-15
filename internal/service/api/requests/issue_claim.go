@@ -9,13 +9,14 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	core "github.com/iden3/go-iden3-core"
 	"gitlab.com/distributed_lab/logan/v3/errors"
+
+	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
 	"gitlab.com/q-dev/q-id/issuer/resources"
-	claimResources "gitlab.com/q-dev/q-id/resources/claim_resources"
 )
 
 type IssueClaimRequest struct {
 	UserDID    *core.DID
-	ClaimType  claimResources.ClaimSchemaType
+	ClaimType  claims.ClaimSchemaType
 	Expiration *time.Time
 	Credential []byte
 }
@@ -43,17 +44,17 @@ func NewIssueClaim(r *http.Request, issuerID string) (*IssueClaimRequest, error)
 		return nil, err
 	}
 
-	schemaType := claimResources.ClaimSchemaTypeList[requestRaw.ClaimType]
+	schemaType := claims.ClaimSchemaTypeList[requestRaw.ClaimType]
 	if err := validation.Validate(
 		requestRaw.Body.Data.Attributes.CredentialSubject,
 		validation.By(
-			claimResources.ClaimSchemaList[schemaType].ClaimDataValidateFunc,
+			claims.ClaimSchemaList[schemaType].ClaimDataValidateFunc,
 		),
 	); err != nil {
 		return nil, errors.Wrap(err, "invalid schema data")
 	}
 
-	parseData, err := claimResources.ClaimSchemaList[schemaType].ClaimDataParseFunc(
+	parseData, err := claims.ClaimSchemaList[schemaType].ClaimDataParseFunc(
 		requestRaw.Body.Data.Attributes.CredentialSubject,
 	)
 	if err != nil {
@@ -93,7 +94,7 @@ func MustBeClaimType(src interface{}) error {
 		return errors.New("it is not a schema type")
 	}
 
-	if _, ok := claimResources.ClaimSchemaTypeList[schemaTypeRaw]; !ok {
+	if _, ok := claims.ClaimSchemaTypeList[schemaTypeRaw]; !ok {
 		return errors.New("schema type doesn't exist")
 	}
 
@@ -131,7 +132,7 @@ func (req *issueClaimRequestRaw) parse() *IssueClaimRequest {
 	return &IssueClaimRequest{
 		Expiration: expiration,
 		UserDID:    did,
-		ClaimType:  claimResources.ClaimSchemaTypeList[req.ClaimType],
+		ClaimType:  claims.ClaimSchemaTypeList[req.ClaimType],
 		Credential: schemaDataTrimmed,
 	}
 }
