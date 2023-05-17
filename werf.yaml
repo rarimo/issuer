@@ -23,7 +23,6 @@ shell: # Shell build instructions.
     - go env -w GONOPROXY=gitlab.com/*
     - cd /go/src/gitlab.com/rarimo/rarimoid/issuer
     - go mod tidy
-    - go mod vendor
   setup: # For the Setup stage.
     - export GOPRIVATE=gitlab.com/*
     - export GONOSUMDB=gitlab.com/*
