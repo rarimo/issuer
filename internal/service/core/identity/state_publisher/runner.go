@@ -27,6 +27,8 @@ func (p *publisher) Run(ctx context.Context) {
 					return true, p.runner(ctx)
 				}, p.retryPeriod, p.retryPeriod,
 			)
+
+			ticker.Reset(p.publishPeriod)
 		}
 	}
 }
