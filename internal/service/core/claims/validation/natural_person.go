@@ -9,11 +9,11 @@ import (
 )
 
 type naturalPerson struct {
-	IsNaturalPerson string `json:"is_natural_person"`
+	IsNaturalPerson string `json:"is_natural"`
 }
 
 type naturalPersonParsed struct {
-	IsNaturalPerson int `json:"is_natural_person"`
+	IsNaturalPerson int `json:"is_natural"`
 }
 
 // nolint
