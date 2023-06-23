@@ -8,8 +8,9 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/api/requests"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/issuer"
+
+	"gitlab.com/rarimo/identity/issuer/internal/service/api/requests"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/issuer"
 )
 
 func OfferCallback(w http.ResponseWriter, r *http.Request) {

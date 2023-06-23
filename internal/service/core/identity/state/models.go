@@ -10,9 +10,9 @@ import (
 	"gitlab.com/distributed_lab/kit/pgdb"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/config"
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/zkp"
+	"gitlab.com/rarimo/identity/issuer/internal/config"
+	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/zkp"
 )
 
 const (

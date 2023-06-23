@@ -8,9 +8,9 @@ import (
 	"github.com/iden3/go-schema-processor/verifiable"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
+	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
 )
 
 func (iden *Identity) GenerateMTP(

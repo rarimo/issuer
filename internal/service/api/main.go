@@ -8,8 +8,9 @@ import (
 	"gitlab.com/distributed_lab/kit/copus/types"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"gitlab.com/q-dev/q-id/issuer/internal/config"
-	issuerPkg "gitlab.com/q-dev/q-id/issuer/internal/service/core/issuer"
+
+	"gitlab.com/rarimo/identity/issuer/internal/config"
+	issuerPkg "gitlab.com/rarimo/identity/issuer/internal/service/core/issuer"
 )
 
 type service struct {

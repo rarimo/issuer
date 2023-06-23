@@ -1,6 +1,6 @@
 package responses
 
-import "gitlab.com/q-dev/q-id/issuer/resources"
+import "gitlab.com/rarimo/identity/issuer/resources"
 
 func NewPublishState(txHash string) *resources.PublishStateResponse {
 	return &resources.PublishStateResponse{

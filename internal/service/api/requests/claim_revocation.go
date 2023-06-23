@@ -7,7 +7,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	core "github.com/iden3/go-iden3-core"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
 )
 
 type ClaimRevocationRequest struct {

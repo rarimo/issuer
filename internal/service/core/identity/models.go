@@ -5,8 +5,9 @@ import (
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
+
+	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
 )
 
 var (

@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	"gitlab.com/distributed_lab/logan/v3"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/issuer"
+
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/issuer"
 )
 
 type ctxKey int

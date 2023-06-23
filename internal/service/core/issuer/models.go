@@ -3,9 +3,9 @@ package issuer
 import (
 	"github.com/pkg/errors"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/schemas"
-	identityPkg "gitlab.com/q-dev/q-id/issuer/internal/service/core/identity"
+	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims/schemas"
+	identityPkg "gitlab.com/rarimo/identity/issuer/internal/service/core/identity"
 )
 
 const (

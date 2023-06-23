@@ -14,10 +14,10 @@ import (
 	"github.com/iden3/iden3comm/protocol"
 	"github.com/pkg/errors"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/api/requests"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
+	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/service/api/requests"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
 )
 
 func (isr *issuer) CreateClaimOffer(

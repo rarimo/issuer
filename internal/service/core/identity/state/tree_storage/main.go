@@ -6,8 +6,9 @@ import (
 	"github.com/iden3/go-merkletree-sql/v2"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	errPkg "gitlab.com/distributed_lab/logan/v3/errors"
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/data/pg"
+
+	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/data/pg"
 )
 
 // treeStorage implement merkletree.Storage

@@ -1,6 +1,6 @@
 FROM golang:1.19 as buildbase
 
-WORKDIR /go/src/gitlab.com/q-dev/q-id/issuer
+WORKDIR /go/src/gitlab.com/rarimo/identity/issuer
 COPY . .
 
 ARG BUILD_TOKEN
@@ -11,7 +11,7 @@ RUN go env -w GOPRIVATE=gitlab.com/*
 RUN go env -w GONOSUMDB=gitlab.com/*
 RUN go env -w GONOPROXY=gitlab.com/*
 
-RUN CGO_ENABLED=1 GOOS=linux go build -o /usr/local/bin/issuer /go/src/gitlab.com/q-dev/q-id/issuer
+RUN CGO_ENABLED=1 GOOS=linux go build -o /usr/local/bin/issuer /go/src/gitlab.com/rarimo/identity/issuer
 
 FROM alpine:3.16.0
 
@@ -23,6 +23,6 @@ COPY --from=buildbase "/go/pkg/mod/github.com/wasmerio/wasmer-go@v1.0.4/wasmer/p
 "/go/pkg/mod/github.com/wasmerio/wasmer-go@v1.0.4/wasmer/packaged/lib/linux-amd64/libwasmer.so"
 
 COPY --from=buildbase /usr/local/bin/issuer /usr/local/bin/issuer
-COPY --from=buildbase /go/src/gitlab.com/q-dev/q-id/issuer/circuits /circuits
+COPY --from=buildbase /go/src/gitlab.com/rarimo/identity/issuer/circuits /circuits
 
 ENTRYPOINT ["issuer"]

@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/running"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
+	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
 )
 
 func (p *publisher) Run(ctx context.Context) {

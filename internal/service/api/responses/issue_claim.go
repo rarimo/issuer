@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"gitlab.com/q-dev/q-id/issuer/resources"
+	"gitlab.com/rarimo/identity/issuer/resources"
 )
 
 type IssueClaimResponse struct {

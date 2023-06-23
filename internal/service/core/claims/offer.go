@@ -11,7 +11,7 @@ import (
 	"github.com/iden3/iden3comm/protocol"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/data"
 )
 
 func NewClaimOffer(callBackURL string, from, to *core.DID, claim *data.Claim) *protocol.CredentialsOfferMessage {

@@ -11,10 +11,10 @@ import (
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/data"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state_publisher/contracts"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/zkp"
+	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state_publisher/contracts"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/zkp"
 )
 
 type Publisher interface {

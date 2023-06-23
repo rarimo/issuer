@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"gitlab.com/distributed_lab/ape"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/api/responses"
+
+	"gitlab.com/rarimo/identity/issuer/internal/service/api/responses"
 )
 
 func GetIdentifier(w http.ResponseWriter, r *http.Request) {

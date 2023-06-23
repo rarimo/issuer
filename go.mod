@@ -1,4 +1,4 @@
-module gitlab.com/q-dev/q-id/issuer
+module gitlab.com/rarimo/identity/issuer
 
 go 1.19
 
@@ -47,7 +47,6 @@ require (
 	github.com/cockroachdb/pebble v0.0.0-20230209160836-829675f94811 // indirect
 	github.com/cockroachdb/redact v1.1.3 // indirect
 	github.com/crackcomm/go-gitignore v0.0.0-20170627025303-887ab5e44cc3 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dchest/blake512 v1.0.0 // indirect
 	github.com/deckarep/golang-set/v2 v2.1.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
@@ -66,6 +65,8 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.2.0 // indirect
+	github.com/iden3/go-circuits v1.0.2 // indirect
+	github.com/iden3/go-merkletree-sql/v2 v2.0.2 // indirect
 	github.com/iden3/go-rapidsnark/types v0.0.2 // indirect
 	github.com/iden3/go-rapidsnark/verifier v0.0.4-0.20221129112904-b9f8680ca8e2 // indirect
 	github.com/ipfs/go-cid v0.3.2 // indirect
@@ -102,7 +103,6 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml v1.9.3 // indirect
 	github.com/piprate/json-gold v0.5.1-0.20230111113000-6ddbe6e6f19f // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
@@ -120,7 +120,6 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.8.1 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
 	github.com/tklauser/go-sysconf v0.3.5 // indirect
@@ -137,6 +136,5 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 )

@@ -10,8 +10,8 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	"gitlab.com/q-dev/q-id/issuer/resources"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
+	"gitlab.com/rarimo/identity/issuer/resources"
 )
 
 type IssueClaimRequest struct {

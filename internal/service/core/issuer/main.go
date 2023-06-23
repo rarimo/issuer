@@ -10,13 +10,13 @@ import (
 	"github.com/iden3/iden3comm/protocol"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
-	"gitlab.com/q-dev/q-id/issuer/internal/config"
-	"gitlab.com/q-dev/q-id/issuer/internal/data/pg"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/api/requests"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims"
-	"gitlab.com/q-dev/q-id/issuer/internal/service/core/claims/schemas"
-	identityPkg "gitlab.com/q-dev/q-id/issuer/internal/service/core/identity"
-	statePkg "gitlab.com/q-dev/q-id/issuer/internal/service/core/identity/state"
+	"gitlab.com/rarimo/identity/issuer/internal/config"
+	"gitlab.com/rarimo/identity/issuer/internal/data/pg"
+	"gitlab.com/rarimo/identity/issuer/internal/service/api/requests"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims/schemas"
+	identityPkg "gitlab.com/rarimo/identity/issuer/internal/service/core/identity"
+	statePkg "gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
 )
 
 type Issuer interface {
