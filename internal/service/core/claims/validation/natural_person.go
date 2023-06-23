@@ -8,53 +8,53 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-type daoMembership struct {
-	IsMember string `json:"is_member"`
+type naturalPerson struct {
+	IsNaturalPerson string `json:"is_natural_person"`
 }
 
-type daoMembershipInt struct {
-	IsMember int `json:"is_member"`
+type naturalPersonParsed struct {
+	IsNaturalPerson int `json:"is_natural_person"`
 }
 
 // nolint
-func MustBeDAOMembership(schemaData interface{}) error {
-	rawData, ok := schemaData.(json.RawMessage)
+func MustBeNaturalPersonCredentials(credentialSubject interface{}) error {
+	rawData, ok := credentialSubject.(json.RawMessage)
 	if !ok {
-		return errors.New("it is not a valid claim data")
+		return errors.New("it is not a valid credential subject")
 	}
 
-	var data daoMembership
+	var data naturalPerson
 	if err := json.Unmarshal(rawData, &data); err != nil {
-		return errors.New("it is not a valid DAO membership credentials")
+		return errors.New("it is not a valid Natural person credentials")
 	}
 
 	return validation.Errors{
-		"data/attributes/credential/is_member": validation.Validate(
-			data.IsMember, validation.Required, validation.By(MustBeBooleanInt),
+		"data/attributes/credential/is_natural_person": validation.Validate(
+			data.IsNaturalPerson, validation.Required, validation.By(MustBeBooleanInt),
 		),
 	}.Filter()
 }
 
-func ParseDAOMembership(rawData []byte) ([]byte, error) {
-	var data daoMembership
+func ParseNaturalPersonCredentials(rawData []byte) ([]byte, error) {
+	var data naturalPerson
 	err := json.Unmarshal(rawData, &data)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal DAO membership data")
 	}
 
-	isMember, err := strconv.ParseInt(data.IsMember, 10, 64)
+	isNaturalPerson, err := strconv.ParseInt(data.IsNaturalPerson, 10, 64)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse is_member field")
 	}
 
-	convertedData, err := json.Marshal(daoMembershipInt{
-		IsMember: int(isMember),
+	parsedCredentials, err := json.Marshal(naturalPersonParsed{
+		IsNaturalPerson: int(isNaturalPerson),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal DAO membership")
 	}
 
-	return convertedData, nil
+	return parsedCredentials, nil
 }
 
 func MustBeBooleanInt(src interface{}) error {

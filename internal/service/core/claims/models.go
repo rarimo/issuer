@@ -17,7 +17,7 @@ const (
 
 	CorrectSchemaHashBytesLength = 16
 	ExpirationWithoutExpiration  = 0
-	CredentialStatusCheckURL     = "/integrations/issuer/v1/claims/revocations/check/"
+	CredentialStatusCheckURL     = "/integrations/issuer/v1/public/claims/revocations/check/"
 
 	AuthBJJCredentialClaimType = "AuthBJJCredential" //nolint
 )
@@ -33,15 +33,15 @@ func (c ClaimSchemaType) ToRaw() string {
 }
 
 const (
-	DAOMembershipSchemaType ClaimSchemaType = "DAOMembership" //nolint
+	NaturalPersonSchemaType ClaimSchemaType = "NaturalPerson" //nolint
 )
 
 const (
-	DAOMembershipSchemaName = "DAO Membership" //nolint
+	NaturalPersonSchemaName = "Natural Person" //nolint
 )
 
 const (
-	DAOMembershipSchemaPath = "/json/DAOMembership.json" //nolint
+	NaturalPersonSchemaPath = "/json/NaturalPerson.json" //nolint
 )
 
 type ClaimDataParseFunc = func([]byte) ([]byte, error)
@@ -54,14 +54,14 @@ type ClaimData struct {
 }
 
 var ClaimSchemaTypeList = map[string]ClaimSchemaType{
-	DAOMembershipSchemaType.ToRaw(): DAOMembershipSchemaType,
+	NaturalPersonSchemaType.ToRaw(): NaturalPersonSchemaType,
 }
 
 var ClaimSchemaList = map[ClaimSchemaType]ClaimData{
-	DAOMembershipSchemaType: {
-		ClaimSchemaURL:        DAOMembershipSchemaPath,
-		ClaimSchemaName:       DAOMembershipSchemaName,
-		ClaimDataValidateFunc: validationPkg.MustBeDAOMembership,
-		ClaimDataParseFunc:    validationPkg.ParseDAOMembership,
+	NaturalPersonSchemaType: {
+		ClaimSchemaURL:        NaturalPersonSchemaPath,
+		ClaimSchemaName:       NaturalPersonSchemaName,
+		ClaimDataValidateFunc: validationPkg.MustBeNaturalPersonCredentials,
+		ClaimDataParseFunc:    validationPkg.ParseNaturalPersonCredentials,
 	},
 }
