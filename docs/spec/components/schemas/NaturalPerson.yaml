@@ -1,0 +1,10 @@
+type: object
+description: Credentials for Natural person claim
+required:
+  - is_natural
+properties:
+  is_natural:
+    type: boolean
+    format: bool
+    description: Flag that contains information about natural person or not
+    example: 1

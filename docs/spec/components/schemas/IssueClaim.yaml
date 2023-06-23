@@ -13,11 +13,10 @@ allOf:
         properties:
           credential_subject:
             oneOf:
-              - $ref: '#/components/schemas/DAOMembership'
+              - $ref: '#/components/schemas/NaturalPerson'
             format: json.RawMessage
             example:
-              is_member: 1
-              serial_number: 1
+              natural_person: 1
           expiration:
             type: string
             format: string
