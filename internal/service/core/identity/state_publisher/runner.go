@@ -2,7 +2,6 @@ package statepublisher
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -14,7 +13,6 @@ import (
 )
 
 func (p *publisher) Run(ctx context.Context) {
-	fmt.Println(p.publishPeriod)
 	ticker := time.NewTicker(p.publishPeriod)
 
 	for {

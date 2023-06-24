@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -42,13 +40,6 @@ func OfferCallback(w http.ResponseWriter, r *http.Request) {
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
-
-	marshaled, err := json.Marshal(response)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(string(marshaled))
 
 	ape.Render(w, response)
 }

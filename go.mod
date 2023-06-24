@@ -13,11 +13,11 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/iden3/go-circuits v1.0.2
 	github.com/iden3/go-iden3-core v1.0.0
-	github.com/iden3/go-iden3-crypto v0.0.14
+	github.com/iden3/go-iden3-crypto v0.0.15
 	github.com/iden3/go-jwz v1.0.0-beta.0
 	github.com/iden3/go-merkletree-sql/v2 v2.0.2
-	github.com/iden3/go-rapidsnark/prover v0.0.9
-	github.com/iden3/go-rapidsnark/witness v0.0.4-0.20221129112904-b9f8680ca8e2
+	github.com/iden3/go-rapidsnark/prover v0.0.10
+	github.com/iden3/go-rapidsnark/witness v0.0.6
 	github.com/iden3/go-schema-processor v1.1.3
 	github.com/iden3/iden3comm v1.0.0-beta.0
 	github.com/pkg/errors v0.9.1
@@ -65,10 +65,9 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.2.0 // indirect
-	github.com/iden3/go-circuits v1.0.2 // indirect
-	github.com/iden3/go-merkletree-sql/v2 v2.0.2 // indirect
-	github.com/iden3/go-rapidsnark/types v0.0.2 // indirect
-	github.com/iden3/go-rapidsnark/verifier v0.0.4-0.20221129112904-b9f8680ca8e2 // indirect
+	github.com/iden3/go-rapidsnark/types v0.0.3 // indirect
+	github.com/iden3/go-rapidsnark/verifier v0.0.5 // indirect
+	github.com/iden3/wasmer-go v0.0.1 // indirect
 	github.com/ipfs/go-cid v0.3.2 // indirect
 	github.com/ipfs/go-ipfs-api v0.4.0 // indirect
 	github.com/ipfs/go-ipfs-files v0.0.9 // indirect
@@ -129,7 +128,7 @@ require (
 	gitlab.com/distributed_lab/lorem v0.2.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
-	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
