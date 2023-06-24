@@ -15,40 +15,26 @@ git: # Section with directives for adding source files from a git repository.
       setup: # For the Setup stage.
         - "**/*"
 shell: # Shell build instructions.
-  install:
-    - git config --global url."https://gitlab-ci-token:{{ env "CI_JOB_TOKEN" }}@gitlab.com/".insteadOf https://gitlab.com/
-    - echo "machine gitlab.com login gitlab-ci-token password {{ env "CI_JOB_TOKEN" }}" > ~/.netrc
-    - go env -w GOPRIVATE=gitlab.com/*
-    - go env -w GONOSUMDB=gitlab.com/*
-    - go env -w GONOPROXY=gitlab.com/*
-    - cd /go/src/gitlab.com/rarimo/rarimoid/issuer
-    - go mod tidy
   setup: # For the Setup stage.
-    - export GOPRIVATE=gitlab.com/*
-    - export GONOSUMDB=gitlab.com/*
-    - export GONOPROXY=gitlab.com/*
-    - export CGO_ENABLED=1
-    - export GO111MODULE=on
-    - export GOOS=linux
     - cd /go/src/gitlab.com/rarimo/rarimoid/issuer
     - go build -o /usr/local/bin/issuer /go/src/gitlab.com/rarimo/rarimoid/issuer
 
 ---
 image: service # The name of the built image.
-from: alpine:3.16.0 # The base image.
+from: alpine:3.18.2 # The base image.
 docker:
   ENTRYPOINT: issuer
 shell: # Shell build instructions.
   setup: # For the Setup stage.
-    - apk add --no-cache libstdc++ gcompat libgomp ca-certificates
+    - apk add --no-cache musl libstdc++ gcompat libgomp ca-certificates
 import:
   - image: builder
     add: /usr/local/bin/issuer
     to: /usr/local/bin/issuer
     after: setup
   - image: builder
-    add: /go/pkg/mod/github.com/wasmerio/wasmer-go@v1.0.4/wasmer/packaged/lib/linux-amd64/libwasmer.so
-    to: /go/pkg/mod/github.com/wasmerio/wasmer-go@v1.0.4/wasmer/packaged/lib/linux-amd64/libwasmer.so
+    add: /go/pkg/mod/github.com/iden3/wasmer-go@v0.0.1
+    to: /go/pkg/mod/github.com/iden3/wasmer-go@v0.0.1
     after: setup
   - image: builder
     add: /go/src/gitlab.com/rarimo/rarimoid/issuer/circuits
