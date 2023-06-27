@@ -40,8 +40,8 @@ func (iden *Identity) GenerateMTP(
 		return nil, errors.Wrap(err, "failed to parse core claim hex")
 	}
 
-	mtProof := verifiable.Iden3SparseMerkleProof{
-		Type:       verifiable.Iden3SparseMerkleProofType,
+	mtProof := verifiable.Iden3SparseMerkleTreeProof{
+		Type:       verifiable.Iden3SparseMerkleTreeProofType,
 		MTP:        inclusionProof,
 		IssuerData: issuerData,
 		CoreClaim:  coreClaimHex,
