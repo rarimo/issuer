@@ -75,7 +75,7 @@ func (req *issueClaimRequestRaw) validate(issuerID string) error {
 		"path/{claim-type}": validation.Validate(
 			req.ClaimType, validation.Required, validation.By(MustBeClaimType),
 		),
-		"data/attributes/credential": validation.Validate(
+		"data/attributes/credential_subject": validation.Validate(
 			req.Body.Data.Attributes.CredentialSubject, validation.Required,
 		),
 		"data/attributes/expiration": validation.Validate(
