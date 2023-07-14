@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/kit/pgdb"
+
 	"gitlab.com/rarimo/identity/issuer/internal/data"
 	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
 )
@@ -26,12 +27,12 @@ type claimsQ struct {
 
 func NewClaimsQ(db *pgdb.DB) data.ClaimsQ {
 	return &claimsQ{
-		db: db.Clone(),
+		db: db,
 	}
 }
 
 func (q *claimsQ) New() data.ClaimsQ {
-	return NewClaimsQ(q.db)
+	return NewClaimsQ(q.db.Clone())
 }
 
 func (q *claimsQ) Insert(claim *data.Claim) error {

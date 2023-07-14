@@ -29,13 +29,13 @@ type committedStatesQ struct {
 
 func NewCommittedStateQ(db *pgdb.DB) data.CommittedStatesQ {
 	return &committedStatesQ{
-		db:  db.Clone(),
+		db:  db,
 		sel: sq.Select("*").From(committedStatesTableName),
 	}
 }
 
 func (q *committedStatesQ) New() data.CommittedStatesQ {
-	return NewCommittedStateQ(q.db)
+	return NewCommittedStateQ(q.db.Clone())
 }
 
 func (q *committedStatesQ) Select() ([]data.CommittedState, error) {

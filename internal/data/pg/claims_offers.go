@@ -7,6 +7,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/kit/pgdb"
+
 	"gitlab.com/rarimo/identity/issuer/internal/data"
 )
 
@@ -21,13 +22,13 @@ type claimsOffersQ struct {
 
 func NewClaimsOffersQ(db *pgdb.DB) data.ClaimsOffersQ {
 	return &claimsOffersQ{
-		db:  db.Clone(),
+		db:  db,
 		sel: sq.Select("*").From(claimsOffersTableName),
 	}
 }
 
 func (q *claimsOffersQ) New() data.ClaimsOffersQ {
-	return NewClaimsOffersQ(q.db)
+	return NewClaimsOffersQ(q.db.Clone())
 }
 
 func (q *claimsOffersQ) Get(id string) (*data.ClaimOffer, error) {

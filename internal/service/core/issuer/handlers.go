@@ -43,8 +43,9 @@ func (isr *issuer) CreateClaimOffer(
 		fmt.Sprint(isr.baseURL, ClaimIssueCallBackPath), isr.Identifier, userDID, claim,
 	)
 
-	claimOfferRaw := claims.ClaimOfferToRaw(claimOffer, time.Now(), isr.Identifier.ID, userDID.ID)
-	err = isr.claimsOffersQ.Insert(claimOfferRaw)
+	err = isr.claimsOffersQ.Insert(
+		claims.ClaimOfferToRaw(claimOffer, time.Now(), isr.Identifier.ID, userDID.ID),
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to insert claim offer to db")
 	}
@@ -69,14 +70,25 @@ func (isr *issuer) IssueClaim(
 		return "", errors.Wrap(err, "failed to get claim index and value hash")
 	}
 
-	err = isr.State.DB.ClaimsQ().Insert(claim)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to insert claim into db")
-	}
+	// we clone it to save the atomicity of the TX and to
+	// avoid this issue https://github.com/lib/pq/issues/635
+	// merkletree.Add() contains update statement after the select
+	db := isr.State.DB.New()
+	err = db.Transaction(func() error {
+		err = db.ClaimsQ().Insert(claim)
+		if err != nil {
+			return errors.Wrap(err, "failed to insert claim into db")
+		}
 
-	err = isr.State.ClaimsTree.Add(ctx, hi, hv)
+		err = isr.State.ClaimsTree.Add(ctx, hi, hv)
+		if err != nil {
+			return errors.Wrap(err, "failed to add claim to the claims merkle tree")
+		}
+
+		return nil
+	})
 	if err != nil {
-		return "", errors.Wrap(err, "failed to add claim to the claims merkle tree")
+		return "", errors.Wrap(err, "failed to execute db transaction")
 	}
 
 	return claim.ID, nil
@@ -194,17 +206,29 @@ func (isr *issuer) RevokeClaim(
 		return ErrClaimIsAlreadyRevoked
 	}
 
-	err = isr.State.RevocationsTree.Add(ctx, new(big.Int).SetUint64(
-		claim.CoreClaim.GetRevocationNonce()), merkletree.HashZero.BigInt(),
-	)
-	if err != nil {
-		return errors.Wrap(err, "failed to add revocation nonce to the revocations merkle tree")
-	}
-
 	claim.Revoked = true
-	err = isr.State.DB.ClaimsQ().Update(claim)
+
+	// we clone it to save the atomicity of the TX and to
+	// avoid this issue https://github.com/lib/pq/issues/635
+	// merkletree.Add() contains update statement after the select
+	db := isr.State.DB.New()
+	err = db.Transaction(func() error {
+		err = db.ClaimsQ().Update(claim)
+		if err != nil {
+			return errors.Wrap(err, "failed to update claim in db")
+		}
+
+		err = isr.State.RevocationsTree.Add(ctx, new(big.Int).SetUint64(
+			claim.CoreClaim.GetRevocationNonce()), merkletree.HashZero.BigInt(),
+		)
+		if err != nil {
+			return errors.Wrap(err, "failed to add revocation nonce to the revocations merkle tree")
+		}
+
+		return nil
+	})
 	if err != nil {
-		return errors.Wrap(err, "failed to update claim in db")
+		return errors.Wrap(err, "failed to execute db transaction")
 	}
 
 	return nil

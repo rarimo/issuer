@@ -59,11 +59,7 @@ func (isr *issuer) checkClaimRetriever(claim *data.Claim, claimRetriever string,
 		return false, errors.Wrap(ErrProofVerifyFailed, err.Error())
 	}
 
-	if !isZKPValid {
-		return false, nil
-	}
-
-	return true, nil
+	return isZKPValid, nil
 }
 
 func strptr(str string) *string {

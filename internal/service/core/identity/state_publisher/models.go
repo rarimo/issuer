@@ -22,7 +22,7 @@ const (
 	pendingQueueLen          = 256
 	statePublisherRunnerName = "state_publisher"
 
-	StateDoesntExistErrMsg = "State does not exist"
+	StateDoesntExistErrMsg = "execution reverted"
 )
 
 var (

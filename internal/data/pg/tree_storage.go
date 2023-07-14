@@ -7,6 +7,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/kit/pgdb"
+
 	"gitlab.com/rarimo/identity/issuer/internal/data"
 )
 
@@ -22,13 +23,13 @@ type treeStorageQ struct {
 
 func NewTreeStorageQ(db *pgdb.DB, treeName string) data.TreeStorageQ {
 	return &treeStorageQ{
-		db:       db.Clone(),
+		db:       db,
 		treeName: treeName,
 	}
 }
 
 func (q *treeStorageQ) New() data.TreeStorageQ {
-	return NewTreeStorageQ(q.db, q.treeName)
+	return NewTreeStorageQ(q.db.Clone(), q.treeName)
 }
 
 func (q *treeStorageQ) Insert(key, value []byte) error {

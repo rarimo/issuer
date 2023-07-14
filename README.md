@@ -2,7 +2,7 @@
 
 ## Description
 
-This is an Issuer service that follows an [Iden3 protocol](https://docs.iden3.io/).
+This is an Issuer service that follows the [Iden3 protocol](https://docs.iden3.io/).
 It provides an ability to create an Identity and issue different claims.
 You can think of a claim as a statement: something an Issuer says about another subject.
 For example, when you apply for a job, the employer may ask you to provide a reference from your previous employer.
