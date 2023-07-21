@@ -33,15 +33,18 @@ func (c ClaimSchemaType) ToRaw() string {
 }
 
 const (
-	NaturalPersonSchemaType ClaimSchemaType = "NaturalPerson" //nolint
+	NaturalPersonSchemaType     ClaimSchemaType = "NaturalPerson"
+	IdentityProvidersSchemaType ClaimSchemaType = "IdentityProviders"
 )
 
 const (
-	NaturalPersonSchemaName = "Natural Person" //nolint
+	NaturalPersonSchemaName     = "Natural Person"
+	IdentityProvidersSchemaName = "Identity Providers"
 )
 
 const (
-	NaturalPersonSchemaPath = "/json/NaturalPerson.json" //nolint
+	NaturalPersonSchemaPath     = "/json/NaturalPerson.json"
+	IdentityProvidersSchemaPath = "/json/IdentityProviders.json"
 )
 
 type ClaimDataParseFunc = func([]byte) ([]byte, error)
@@ -54,7 +57,8 @@ type ClaimData struct {
 }
 
 var ClaimSchemaTypeList = map[string]ClaimSchemaType{
-	NaturalPersonSchemaType.ToRaw(): NaturalPersonSchemaType,
+	NaturalPersonSchemaType.ToRaw():     NaturalPersonSchemaType,
+	IdentityProvidersSchemaType.ToRaw(): IdentityProvidersSchemaType,
 }
 
 var ClaimSchemaList = map[ClaimSchemaType]ClaimData{
@@ -63,5 +67,11 @@ var ClaimSchemaList = map[ClaimSchemaType]ClaimData{
 		ClaimSchemaName:       NaturalPersonSchemaName,
 		ClaimDataValidateFunc: validationPkg.MustBeNaturalPersonCredentials,
 		ClaimDataParseFunc:    validationPkg.ParseNaturalPersonCredentials,
+	},
+	IdentityProvidersSchemaType: {
+		ClaimSchemaURL:        IdentityProvidersSchemaPath,
+		ClaimSchemaName:       IdentityProvidersSchemaName,
+		ClaimDataValidateFunc: validationPkg.MustBeIdentityProvidersCredentials,
+		ClaimDataParseFunc:    validationPkg.ParseIdentityProvidersCredentials,
 	},
 }

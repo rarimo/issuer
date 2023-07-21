@@ -29,7 +29,7 @@ func MustBeNaturalPersonCredentials(credentialSubject interface{}) error {
 	}
 
 	return validation.Errors{
-		"data/attributes/credential/is_natural_person": validation.Validate(
+		"data/attributes/credential/is_natural": validation.Validate(
 			data.IsNaturalPerson, validation.Required, validation.By(MustBeBooleanInt),
 		),
 	}.Filter()
