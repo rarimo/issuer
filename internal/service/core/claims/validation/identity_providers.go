@@ -46,7 +46,7 @@ func MustBeIdentityProvidersCredentials(credentialSubject interface{}) error {
 			data.Provider, validation.Required,
 		),
 		"data/attributes/credential/gitcoin_passport_score": validation.Validate(
-			data.GitcoinPassportScore, validation.By(MustBeUintOrEmpty),
+			data.GitcoinPassportScore, validation.By(MustBeFloatOrEmpty),
 		),
 		"data/attributes/credential/civic_gatekeeper_network_id": validation.Validate(
 			data.CivicGatekeeperNetworkID, validation.By(MustBeUintOrEmpty),
@@ -113,6 +113,24 @@ func MustBeUintOrEmpty(src interface{}) error {
 	_, err := strconv.ParseInt(numberRaw, 10, 64)
 	if err != nil {
 		return errors.New("it is not an uint64")
+	}
+
+	return nil
+}
+
+func MustBeFloatOrEmpty(src interface{}) error {
+	numberRaw, ok := src.(string)
+	if !ok {
+		return errors.New("it is not a string")
+	}
+
+	if numberRaw == "" {
+		return nil
+	}
+
+	_, err := strconv.ParseFloat(numberRaw, 64)
+	if err != nil {
+		return errors.New("it is not an float64")
 	}
 
 	return nil
