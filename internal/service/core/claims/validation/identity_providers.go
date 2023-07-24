@@ -19,13 +19,13 @@ type identityProviders struct {
 }
 
 type identityProvidersParsed struct {
-	Provider                 string `json:"provider"`
-	Address                  string `json:"address"`
-	GitcoinPassportScore     int    `json:"gitcoin_passport_score"`
-	WorldCoinScore           string `json:"worldcoin_score"`
-	UnstoppableDomain        string `json:"unstoppable_domain"`
-	CivicGatekeeperNetworkID int    `json:"civic_gatekeeper_network_id"`
-	KYCAdditionalData        string `json:"kyc_additional_data"`
+	Provider                 string  `json:"provider"`
+	Address                  string  `json:"address"`
+	GitcoinPassportScore     float64 `json:"gitcoin_passport_score"`
+	WorldCoinScore           string  `json:"worldcoin_score"`
+	UnstoppableDomain        string  `json:"unstoppable_domain"`
+	CivicGatekeeperNetworkID int     `json:"civic_gatekeeper_network_id"`
+	KYCAdditionalData        string  `json:"kyc_additional_data"`
 }
 
 func MustBeIdentityProvidersCredentials(credentialSubject interface{}) error {
@@ -61,7 +61,7 @@ func ParseIdentityProvidersCredentials(rawData []byte) ([]byte, error) {
 		return nil, errors.Wrap(err, "failed to unmarshal DAO membership data")
 	}
 
-	gitcoinPassportScore, err := parseIntFromString(data.GitcoinPassportScore)
+	gitcoinPassportScore, err := parseFloatFromString(data.GitcoinPassportScore)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse gitcoin_passport_score field")
 	}
@@ -98,6 +98,19 @@ func parseIntFromString(src string) (int, error) {
 	}
 
 	return int(gitcoinPassportScore), nil
+}
+
+func parseFloatFromString(src string) (float64, error) {
+	if src == "" {
+		return 0, nil
+	}
+
+	gitcoinPassportScore, err := strconv.ParseFloat(src, 64)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to parse gitcoin_passport_score field")
+	}
+
+	return gitcoinPassportScore, nil
 }
 
 func MustBeUintOrEmpty(src interface{}) error {
