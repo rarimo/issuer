@@ -16,7 +16,7 @@ type identityProviders struct {
 	UnstoppableDomain        string `json:"unstoppable_domain"`
 	CivicGatekeeperNetworkID string `json:"civic_gatekeeper_network_id"`
 	KYCAdditionalData        string `json:"kyc_additional_data"`
-	IsNaturalPerson          string `json:"is_natural"`
+	IsNaturalPerson          bool   `json:"is_natural"`
 }
 
 type identityProvidersParsed struct {
@@ -27,7 +27,7 @@ type identityProvidersParsed struct {
 	UnstoppableDomain        string `json:"unstoppable_domain"`
 	CivicGatekeeperNetworkID int    `json:"civic_gatekeeper_network_id"`
 	KYCAdditionalData        string `json:"kyc_additional_data"`
-	IsNaturalPerson          int    `json:"is_natural"`
+	IsNaturalPerson          bool   `json:"is_natural"`
 }
 
 func MustBeIdentityProvidersCredentials(credentialSubject interface{}) error {
@@ -47,9 +47,6 @@ func MustBeIdentityProvidersCredentials(credentialSubject interface{}) error {
 		),
 		"data/attributes/credential/civic_gatekeeper_network_id": validation.Validate(
 			data.CivicGatekeeperNetworkID, validation.By(MustBeUintOrEmpty),
-		),
-		"data/attributes/credential/is_natural": validation.Validate(
-			data.IsNaturalPerson, validation.Required, validation.By(MustBeBooleanInt),
 		),
 	}.Filter()
 }
@@ -71,11 +68,6 @@ func ParseIdentityProvidersCredentials(rawData []byte) ([]byte, error) {
 		gitcoinPassportScore = "0.0"
 	}
 
-	isNaturalPerson, err := strconv.ParseInt(data.IsNaturalPerson, 10, 64)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse is_member field")
-	}
-
 	parsedCredentials, err := json.Marshal(identityProvidersParsed{
 		Provider:                 noneIfEmpty(data.Provider),
 		Address:                  noneIfEmpty(data.Address),
@@ -84,7 +76,7 @@ func ParseIdentityProvidersCredentials(rawData []byte) ([]byte, error) {
 		GitcoinPassportScore:     gitcoinPassportScore,
 		CivicGatekeeperNetworkID: civicGatekeeperNetworkID,
 		KYCAdditionalData:        noneIfEmpty(data.KYCAdditionalData),
-		IsNaturalPerson:          int(isNaturalPerson),
+		IsNaturalPerson:          data.IsNaturalPerson,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal DAO membership")
