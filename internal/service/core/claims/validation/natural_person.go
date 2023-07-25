@@ -2,16 +2,18 @@ package validation
 
 import (
 	"encoding/json"
+	"strconv"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
 type naturalPerson struct {
-	IsNaturalPerson bool `json:"is_natural"`
+	IsNaturalPerson string `json:"is_natural"`
 }
 
 type naturalPersonParsed struct {
-	IsNaturalPerson bool `json:"is_natural"`
+	IsNaturalPerson int `json:"is_natural"`
 }
 
 // nolint
@@ -26,7 +28,11 @@ func MustBeNaturalPersonCredentials(credentialSubject interface{}) error {
 		return errors.New("it is not a valid Natural person credentials")
 	}
 
-	return nil
+	return validation.Errors{
+		"data/attributes/credential/is_natural": validation.Validate(
+			data.IsNaturalPerson, validation.Required, validation.By(MustBeBooleanInt),
+		),
+	}.Filter()
 }
 
 func ParseNaturalPersonCredentials(rawData []byte) ([]byte, error) {
@@ -36,12 +42,35 @@ func ParseNaturalPersonCredentials(rawData []byte) ([]byte, error) {
 		return nil, errors.Wrap(err, "failed to unmarshal DAO membership data")
 	}
 
+	isNaturalPerson, err := strconv.ParseInt(data.IsNaturalPerson, 10, 64)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse is_member field")
+	}
+
 	parsedCredentials, err := json.Marshal(naturalPersonParsed{
-		IsNaturalPerson: data.IsNaturalPerson,
+		IsNaturalPerson: int(isNaturalPerson),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal DAO membership")
 	}
 
 	return parsedCredentials, nil
+}
+
+func MustBeBooleanInt(src interface{}) error {
+	numberRaw, ok := src.(string)
+	if !ok {
+		return errors.New("it is not a string")
+	}
+
+	booleanInt, err := strconv.ParseInt(numberRaw, 10, 64)
+	if err != nil {
+		return errors.New("it is not an int64")
+	}
+
+	if booleanInt != 0 && booleanInt != 1 {
+		return errors.New("it is not a boolean in integer format")
+	}
+
+	return nil
 }
