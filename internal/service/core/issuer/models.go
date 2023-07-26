@@ -1,6 +1,7 @@
 package issuer
 
 import (
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 
 	"gitlab.com/rarimo/identity/issuer/internal/data"
@@ -14,6 +15,10 @@ const (
 	basicAuthKeyPath       = "/auth/verification_key.json"
 )
 
+const (
+	uuidStringSize = 36
+)
+
 var (
 	ErrProofVerifyFailed             = errors.New("failed to verify proof")
 	ErrClaimIsNotExist               = errors.New("claim is not exist")
@@ -22,6 +27,7 @@ var (
 	ErrMessageRecipientIsNotIssuer   = errors.New("the message recipient is not an issuer")
 	ErrRepeatedCallbackRequest       = errors.New("repeated callback request")
 	ErrClaimIsAlreadyRevoked         = errors.New("claim is already revoked")
+	ErrInvalidCredentialID           = errors.New("invalid credential id")
 )
 
 type issuer struct {
@@ -30,4 +36,16 @@ type issuer struct {
 	claimsOffersQ       data.ClaimsOffersQ
 	authVerificationKey []byte
 	baseURL             string
+}
+
+// ClaimInclusionMTP info required to check that claim is included in the issuer's claims tree.
+// It is required for the extended Iden3 protocol tha supports cross chain with Rarimo.
+type ClaimInclusionMTP struct {
+	Issuer struct {
+		State              *string `json:"state,omitempty"`
+		RootOfRoots        *string `json:"rootOfRoots,omitempty"`
+		ClaimsTreeRoot     *string `json:"claimsTreeRoot,omitempty"`
+		RevocationTreeRoot *string `json:"revocationTreeRoot,omitempty"`
+	} `json:"issuer"`
+	MTP merkletree.Proof `json:"mtp"`
 }

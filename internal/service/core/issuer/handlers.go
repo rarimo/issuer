@@ -185,6 +185,56 @@ func (isr *issuer) GetRevocationStatus(
 	}, nil
 }
 
+func (isr *issuer) GetInclusionMTP(
+	ctx context.Context,
+	claimID uuid.UUID,
+) (*ClaimInclusionMTP, error) {
+	lastCommittedStateRaw, err := isr.State.DB.CommittedStatesQ().WhereStatus(data.StatusCompleted).GetLatest()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get last committed state")
+	}
+
+	lastCommittedState, err := state.CommittedStateFromRaw(lastCommittedStateRaw)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get last committed state")
+	}
+
+	claim, err := isr.State.DB.ClaimsQ().Get(claimID.String())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get claim from db")
+	}
+
+	hi, err := claim.CoreClaim.HIndex()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get claim index hash")
+	}
+
+	mtp, _, err := isr.State.ClaimsTree.GenerateProof(ctx, hi, lastCommittedState.ClaimsTreeRoot)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate claim inclusion proof")
+	}
+
+	stateHash, err := lastCommittedState.StateHash()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate state hash")
+	}
+
+	return &ClaimInclusionMTP{
+		MTP: *mtp,
+		Issuer: struct {
+			State              *string `json:"state,omitempty"`
+			RootOfRoots        *string `json:"rootOfRoots,omitempty"`
+			ClaimsTreeRoot     *string `json:"claimsTreeRoot,omitempty"`
+			RevocationTreeRoot *string `json:"revocationTreeRoot,omitempty"`
+		}{
+			State:              strptr(stateHash.Hex()),
+			RevocationTreeRoot: strptr(lastCommittedState.RevocationsTreeRoot.Hex()),
+			RootOfRoots:        strptr(lastCommittedState.RootsTreeRoot.Hex()),
+			ClaimsTreeRoot:     strptr(lastCommittedState.ClaimsTreeRoot.Hex()),
+		},
+	}, nil
+}
+
 func (isr *issuer) GetIdentifier() string {
 	return isr.Identifier.ID.String()
 }

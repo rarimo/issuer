@@ -13,9 +13,11 @@ import (
 	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
 )
 
-func (iden *Identity) GenerateMTP(
+// GenerateIncMTProof generates merkletree proof for inclusion claim in issuer's claims tree.
+func (iden *Identity) GenerateIncMTProof(
 	ctx context.Context,
 	claim *core.Claim,
+	updateURL string, // contains URL for MTProof updating
 	issuerData verifiable.IssuerData,
 ) ([]byte, error) {
 	if claim == nil {
@@ -40,11 +42,14 @@ func (iden *Identity) GenerateMTP(
 		return nil, errors.Wrap(err, "failed to parse core claim hex")
 	}
 
-	mtProof := verifiable.Iden3SparseMerkleTreeProof{
-		Type:       verifiable.Iden3SparseMerkleTreeProofType,
-		MTP:        inclusionProof,
-		IssuerData: issuerData,
-		CoreClaim:  coreClaimHex,
+	mtProof := Iden3SparseMerkleTreeProofWithID{
+		Iden3SparseMerkleTreeProof: verifiable.Iden3SparseMerkleTreeProof{
+			Type:       verifiable.Iden3SparseMerkleTreeProofType,
+			MTP:        inclusionProof,
+			IssuerData: issuerData,
+			CoreClaim:  coreClaimHex,
+		},
+		ID: updateURL,
 	}
 
 	proofRaw, err := json.Marshal(mtProof)
@@ -55,7 +60,8 @@ func (iden *Identity) GenerateMTP(
 	return proofRaw, nil
 }
 
-func (iden *Identity) GenerateSignatureProof(
+// GenerateIncSigProof generates signature proof for inclusion claim in issuer's claims tree.
+func (iden *Identity) GenerateIncSigProof(
 	claim *core.Claim,
 	issuerData verifiable.IssuerData,
 ) ([]byte, error) {

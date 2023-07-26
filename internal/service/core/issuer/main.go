@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/google/uuid"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/iden3/iden3comm/protocol"
@@ -25,6 +26,7 @@ type Issuer interface {
 	IssueClaim(context.Context, *core.DID, *time.Time, claims.ClaimSchemaType, []byte) (string, error)
 	OfferCallback(context.Context, *requests.OfferCallbackRequest) (*protocol.CredentialIssuanceMessage, error)
 	GetRevocationStatus(context.Context, *big.Int) (*verifiable.RevocationStatus, error)
+	GetInclusionMTP(ctx context.Context, claimID uuid.UUID) (*ClaimInclusionMTP, error)
 	RevokeClaim(context.Context, *core.ID, claims.ClaimSchemaType) error
 }
 

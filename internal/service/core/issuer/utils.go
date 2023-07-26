@@ -25,7 +25,7 @@ func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) (err e
 		return errors.Wrap(err, "failed to compact issuer data")
 	}
 
-	claim.SignatureProof, err = isr.GenerateSignatureProof(
+	claim.SignatureProof, err = isr.GenerateIncSigProof(
 		claim.CoreClaim.Claim,
 		*issuerData,
 	)
@@ -33,7 +33,12 @@ func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) (err e
 		return errors.Wrap(err, "failed to get signature proof")
 	}
 
-	claim.MTP, err = isr.GenerateMTP(ctx, claim.CoreClaim.Claim, *issuerData)
+	claim.MTP, err = isr.GenerateIncMTProof(
+		ctx,
+		claim.CoreClaim.Claim,
+		fmt.Sprint(isr.baseURL, claims.MTPUpdateURL, claim.ID),
+		*issuerData,
+	)
 	if err != nil {
 		if errors.Is(err, identity.ErrClaimWasNotPublishedYet) {
 			return nil
@@ -64,4 +69,12 @@ func (isr *issuer) checkClaimRetriever(claim *data.Claim, claimRetriever string,
 
 func strptr(str string) *string {
 	return &str
+}
+
+func cutClaimIDFromCredentialID(credentialID string) (string, error) {
+	if len(credentialID) < uuidStringSize {
+		return "", ErrInvalidCredentialID
+	}
+
+	return credentialID[len(credentialID)-uuidStringSize:], nil
 }

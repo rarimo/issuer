@@ -18,6 +18,7 @@ const (
 	CorrectSchemaHashBytesLength = 16
 	ExpirationWithoutExpiration  = 0
 	CredentialStatusCheckURL     = "/integrations/issuer/v1/public/claims/revocations/check/"
+	MTPUpdateURL                 = "/integrations/issuer/v1/public/claims/mtp/update/"
 
 	AuthBJJCredentialClaimType = "AuthBJJCredential" //nolint
 )

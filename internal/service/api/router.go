@@ -32,6 +32,8 @@ func (s *service) router() chi.Router {
 					r.Route("/revocations", func(r chi.Router) {
 						r.Get("/check/{rev-id}", handlers.RevocationCheck)
 					})
+
+					r.Get("/mtp-update/{credential-id}", handlers.InclusionMTPUpdate)
 				})
 
 				r.Route("/identity", func(r chi.Router) {

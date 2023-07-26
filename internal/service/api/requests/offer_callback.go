@@ -57,12 +57,12 @@ func (r *OfferCallbackRequest) validate() error {
 			r.FetchMessage.To, validation.Required, validation.By(MustBeValidDID),
 		),
 		"message/body/id": validation.Validate(
-			r.FetchMessage.Body.ID, validation.Required, validation.By(MustBeClaimID),
+			r.FetchMessage.Body.ID, validation.Required, validation.By(MustBeValidUUID),
 		),
 	}.Filter()
 }
 
-func MustBeClaimID(src interface{}) error {
+func MustBeValidUUID(src interface{}) error {
 	uuidRaw, ok := src.(string)
 	if !ok {
 		return errors.New("it is not a string")
