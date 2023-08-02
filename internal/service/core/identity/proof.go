@@ -42,7 +42,7 @@ func (iden *Identity) GenerateIncMTProof(
 		return nil, errors.Wrap(err, "failed to parse core claim hex")
 	}
 
-	mtProof := Iden3SparseMerkleTreeProofWithID{
+	mtProof := claims.Iden3SparseMerkleTreeProofWithID{
 		Iden3SparseMerkleTreeProof: verifiable.Iden3SparseMerkleTreeProof{
 			Type:       verifiable.Iden3SparseMerkleTreeProofType,
 			MTP:        inclusionProof,

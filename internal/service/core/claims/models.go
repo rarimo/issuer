@@ -2,6 +2,7 @@ package claims
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/iden3/go-schema-processor/verifiable"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
 	validationPkg "gitlab.com/rarimo/identity/issuer/internal/service/core/claims/validation"
@@ -75,4 +76,10 @@ var ClaimSchemaList = map[ClaimSchemaType]ClaimData{
 		ClaimDataValidateFunc: validationPkg.MustBeIdentityProvidersCredentials,
 		ClaimDataParseFunc:    validationPkg.ParseIdentityProvidersCredentials,
 	},
+}
+
+type Iden3SparseMerkleTreeProofWithID struct {
+	verifiable.Iden3SparseMerkleTreeProof
+
+	ID string `json:"id"`
 }

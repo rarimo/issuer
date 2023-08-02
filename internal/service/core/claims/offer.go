@@ -100,7 +100,7 @@ func compactProofs(claim *data.Claim) (verifiable.CredentialProofs, error) {
 		proofs = append(proofs, signatureProof)
 	}
 
-	mtp := &verifiable.Iden3SparseMerkleTreeProof{}
+	mtp := &Iden3SparseMerkleTreeProofWithID{}
 	if claim.MTP != nil {
 		if err := json.Unmarshal(claim.MTP, mtp); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal merkle tree proof")

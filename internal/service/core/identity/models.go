@@ -3,7 +3,6 @@ package identity
 import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-schema-processor/verifiable"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
@@ -23,10 +22,4 @@ type Identity struct {
 
 	log   *logan.Entry
 	State *state.IdentityState
-}
-
-type Iden3SparseMerkleTreeProofWithID struct {
-	verifiable.Iden3SparseMerkleTreeProof
-
-	ID string `json:"id"`
 }
