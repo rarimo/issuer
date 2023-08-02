@@ -56,58 +56,16 @@ func ClaimOfferToRaw(
 }
 
 func ClaimModelToW3Credential(claim *data.Claim) (*verifiable.W3CCredential, error) {
-	proofs, err := compactProofs(claim)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to compact proofs")
+	res := &verifiable.W3CCredential{
+		Proof: verifiable.CredentialProofs{
+			claim.SignatureProof,
+			claim.MTP,
+		},
 	}
-
-	res := &verifiable.W3CCredential{}
-	err = json.Unmarshal(claim.Credential, res)
+	err := json.Unmarshal(claim.Credential, res)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal credential")
 	}
 
-	res.Proof = proofs
-
 	return res, nil
-}
-
-func getClaimIDPosition(claim *core.Claim) (string, error) {
-	claimIDPosition, err := claim.GetIDPosition()
-	if err != nil {
-		return "", errors.Wrap(err, "failed to get subject id position")
-	}
-
-	switch claimIDPosition {
-	case core.IDPositionIndex:
-		return SubjectPositionIndex, nil
-	case core.IDPositionValue:
-		return SubjectPositionValue, nil
-	default:
-		return "", ErrIDPositionIsNotSpecified
-	}
-}
-
-func compactProofs(claim *data.Claim) (verifiable.CredentialProofs, error) {
-	proofs := verifiable.CredentialProofs{}
-
-	signatureProof := &verifiable.BJJSignatureProof2021{}
-	if claim.SignatureProof != nil {
-		if err := json.Unmarshal(claim.SignatureProof, signatureProof); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal signature proof")
-		}
-
-		proofs = append(proofs, signatureProof)
-	}
-
-	mtp := &Iden3SparseMerkleTreeProofWithID{}
-	if claim.MTP != nil {
-		if err := json.Unmarshal(claim.MTP, mtp); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal merkle tree proof")
-		}
-
-		proofs = append(proofs, mtp)
-	}
-
-	return proofs, nil
 }

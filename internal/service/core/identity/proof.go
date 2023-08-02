@@ -2,7 +2,6 @@ package identity
 
 import (
 	"context"
-	"encoding/json"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-schema-processor/verifiable"
@@ -19,7 +18,7 @@ func (iden *Identity) GenerateIncMTProof(
 	claim *core.Claim,
 	updateURL string, // contains URL for MTProof updating
 	issuerData verifiable.IssuerData,
-) ([]byte, error) {
+) (*data.Iden3SparseMerkleTreeProofWithID, error) {
 	if claim == nil {
 		return nil, errors.New("failed to generate proof, claim is nil")
 	}
@@ -42,7 +41,7 @@ func (iden *Identity) GenerateIncMTProof(
 		return nil, errors.Wrap(err, "failed to parse core claim hex")
 	}
 
-	mtProof := claims.Iden3SparseMerkleTreeProofWithID{
+	return &data.Iden3SparseMerkleTreeProofWithID{
 		Iden3SparseMerkleTreeProof: verifiable.Iden3SparseMerkleTreeProof{
 			Type:       verifiable.Iden3SparseMerkleTreeProofType,
 			MTP:        inclusionProof,
@@ -50,21 +49,14 @@ func (iden *Identity) GenerateIncMTProof(
 			CoreClaim:  coreClaimHex,
 		},
 		ID: updateURL,
-	}
-
-	proofRaw, err := json.Marshal(mtProof)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal merkle tree proof")
-	}
-
-	return proofRaw, nil
+	}, nil
 }
 
 // GenerateIncSigProof generates signature proof for inclusion claim in issuer's claims tree.
 func (iden *Identity) GenerateIncSigProof(
 	claim *core.Claim,
 	issuerData verifiable.IssuerData,
-) ([]byte, error) {
+) (*verifiable.BJJSignatureProof2021, error) {
 	signature, err := claims.SignClaimEntry(claim, iden.Sign)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to sign core claim")
@@ -75,19 +67,12 @@ func (iden *Identity) GenerateIncSigProof(
 		return nil, errors.Wrap(err, "failed to get hex from auth core claim")
 	}
 
-	signProof := &verifiable.BJJSignatureProof2021{
+	return &verifiable.BJJSignatureProof2021{
 		Type:       verifiable.BJJSignatureProofType,
 		Signature:  signature,
 		CoreClaim:  coreClaimHex,
 		IssuerData: issuerData,
-	}
-
-	signProofRaw, err := json.Marshal(signProof)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal signature proof")
-	}
-
-	return signProofRaw, nil
+	}, nil
 }
 
 func (iden *Identity) CompactIssuerData(ctx context.Context, checkRevLink string) (*verifiable.IssuerData, error) {

@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 
 	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/pkg/errors"
 )
 
@@ -18,14 +19,15 @@ type ClaimsQ interface {
 }
 
 type Claim struct {
-	ID             string     `db:"id"                structs:"id"`
-	ClaimType      string     `db:"schema_type"       structs:"schema_type"`
-	Revoked        bool       `db:"revoked"           structs:"revoked"`
-	Credential     []byte     `db:"data"              structs:"data"`
-	CoreClaim      *CoreClaim `db:"core_claim"        structs:"-"`
-	MTP            []byte     `db:"-"                 structs:"-"`
-	SignatureProof []byte     `db:"-"                 structs:"-"`
-	UserID         string     `db:"user_id"           structs:"user_id"`
+	ID         string     `db:"id"          structs:"id"`
+	ClaimType  string     `db:"schema_type" structs:"schema_type"`
+	Revoked    bool       `db:"revoked"     structs:"revoked"`
+	Credential []byte     `db:"data"        structs:"data"`
+	CoreClaim  *CoreClaim `db:"core_claim"  structs:"-"`
+	UserID     string     `db:"user_id"     structs:"user_id"`
+
+	MTP            *Iden3SparseMerkleTreeProofWithID `db:"-" structs:"-"`
+	SignatureProof *verifiable.BJJSignatureProof2021 `db:"-" structs:"-"`
 }
 
 type CoreClaim struct {
@@ -61,4 +63,10 @@ func (c *CoreClaim) Scan(src interface{}) error {
 
 	*c = parsed
 	return nil
+}
+
+type Iden3SparseMerkleTreeProofWithID struct {
+	verifiable.Iden3SparseMerkleTreeProof
+
+	ID string `json:"id"`
 }
