@@ -1,7 +1,7 @@
 post:
   tags:
     - Claims
-  summary: The offer callback handler for the wallets after scanning offer QRCode
+  summary: Offer callback
   operationId: offerCallback
   requestBody:
     content:

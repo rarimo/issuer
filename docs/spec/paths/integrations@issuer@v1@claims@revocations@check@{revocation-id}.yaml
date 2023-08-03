@@ -1,7 +1,7 @@
 post:
   tags:
     - Claims
-  summary: Check claim revocation
+  summary: Revocation check
   operationId: checkClaimRevocation
   parameters:
     - $ref: '#/components/parameters/revocationId'

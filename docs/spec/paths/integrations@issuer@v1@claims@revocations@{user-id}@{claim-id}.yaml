@@ -1,7 +1,7 @@
 post:
   tags:
     - Claims
-  summary: It issues the claim by the specified schema type
+  summary: Revoke
   operationId: revokeClaim
   parameters:
     - $ref: '#/components/parameters/userId'

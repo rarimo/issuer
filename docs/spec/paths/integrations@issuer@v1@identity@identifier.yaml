@@ -1,7 +1,7 @@
 get:
   tags:
     - Identity
-  summary: Get issuer identity identifier
+  summary: Get Issuer's identifier
   operationId: getIdentifier
   responses:
     '200':

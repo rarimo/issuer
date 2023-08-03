@@ -4,9 +4,7 @@ get:
     - $ref: '#/components/parameters/claimId'
   tags:
     - Claims
-  summary: >-
-    It returns offer for the claim retrieving that you can convert to qrCode and
-    scan with the wallet app
+  summary: Offer
   operationId: claimOffer
   responses:
     '200':
