@@ -4,9 +4,9 @@ import (
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/data"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims/schemas"
-	identityPkg "gitlab.com/rarimo/identity/issuer/internal/service/core/identity"
+	"github.com/rarimo/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/service/core/claims/schemas"
+	identityPkg "github.com/rarimo/issuer/internal/service/core/identity"
 )
 
 const (

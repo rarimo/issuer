@@ -7,9 +7,9 @@ import (
 	"github.com/iden3/go-schema-processor/verifiable"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/data"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
+	"github.com/rarimo/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/service/core/claims"
+	"github.com/rarimo/issuer/internal/service/core/identity/state"
 )
 
 // GenerateIncMTProof generates merkletree proof for inclusion claim in issuer's claims tree.

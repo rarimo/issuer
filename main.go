@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"gitlab.com/rarimo/identity/issuer/internal/cli"
+	"github.com/rarimo/issuer/internal/cli"
 )
 
 func main() {

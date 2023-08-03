@@ -7,9 +7,9 @@ import (
 	"github.com/iden3/go-iden3-crypto/utils"
 	"github.com/pkg/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/config"
-	statePkg "gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
-	statepublisher "gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state_publisher"
+	"github.com/rarimo/issuer/internal/config"
+	statePkg "github.com/rarimo/issuer/internal/service/core/identity/state"
+	statepublisher "github.com/rarimo/issuer/internal/service/core/identity/state_publisher"
 )
 
 func New(ctx context.Context, cfg config.Config) (*Identity, error) {

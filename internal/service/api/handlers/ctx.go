@@ -6,7 +6,7 @@ import (
 
 	"gitlab.com/distributed_lab/logan/v3"
 
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/issuer"
+	"github.com/rarimo/issuer/internal/service/core/issuer"
 )
 
 type ctxKey int

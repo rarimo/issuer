@@ -12,10 +12,10 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"gitlab.com/distributed_lab/logan/v3"
 
-	"gitlab.com/rarimo/identity/issuer/internal/config"
-	"gitlab.com/rarimo/identity/issuer/internal/data"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state_publisher/contracts"
+	"github.com/rarimo/issuer/internal/config"
+	"github.com/rarimo/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/service/core/identity/state"
+	"github.com/rarimo/issuer/internal/service/core/identity/state_publisher/contracts"
 )
 
 const (

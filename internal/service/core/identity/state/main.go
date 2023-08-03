@@ -9,9 +9,9 @@ import (
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/data/pg"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
-	treestorage "gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state/tree_storage"
+	"github.com/rarimo/issuer/internal/data/pg"
+	"github.com/rarimo/issuer/internal/service/core/claims"
+	treestorage "github.com/rarimo/issuer/internal/service/core/identity/state/tree_storage"
 )
 
 func NewIdentityState(ctx context.Context, cfg Config) (*IdentityState, error) {

@@ -8,9 +8,9 @@ import (
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
 
-	"gitlab.com/rarimo/identity/issuer/internal/service/api/requests"
-	"gitlab.com/rarimo/identity/issuer/internal/service/api/responses"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims/schemas"
+	"github.com/rarimo/issuer/internal/service/api/requests"
+	"github.com/rarimo/issuer/internal/service/api/responses"
+	"github.com/rarimo/issuer/internal/service/core/claims/schemas"
 )
 
 func IssueClaim(w http.ResponseWriter, r *http.Request) {

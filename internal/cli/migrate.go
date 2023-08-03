@@ -1,10 +1,10 @@
 package cli
 
 import (
+	"github.com/rarimo/issuer/internal/assets"
+	"github.com/rarimo/issuer/internal/config"
 	migrate "github.com/rubenv/sql-migrate"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"gitlab.com/rarimo/identity/issuer/internal/assets"
-	"gitlab.com/rarimo/identity/issuer/internal/config"
 )
 
 var migrations = &migrate.EmbedFileSystemMigrationSource{

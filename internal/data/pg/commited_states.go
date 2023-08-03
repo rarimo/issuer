@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/kit/pgdb"
 
-	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/data"
 )
 
 const (

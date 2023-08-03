@@ -2,7 +2,7 @@ package responses
 
 import (
 	"github.com/iden3/iden3comm/protocol"
-	"gitlab.com/rarimo/identity/issuer/resources"
+	"github.com/rarimo/issuer/resources"
 )
 
 func NewClaimOffer(claimOffer *protocol.CredentialsOfferMessage) *resources.ClaimOfferResponse {

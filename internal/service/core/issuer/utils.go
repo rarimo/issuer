@@ -7,9 +7,9 @@ import (
 	"github.com/iden3/go-jwz"
 	"github.com/pkg/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/data"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity"
+	"github.com/rarimo/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/service/core/claims"
+	"github.com/rarimo/issuer/internal/service/core/identity"
 )
 
 func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) (err error) {

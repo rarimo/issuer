@@ -5,7 +5,7 @@ import (
 
 	"gitlab.com/distributed_lab/ape"
 
-	"gitlab.com/rarimo/identity/issuer/internal/service/api/responses"
+	"github.com/rarimo/issuer/internal/service/api/responses"
 )
 
 func GetIdentifier(w http.ResponseWriter, r *http.Request) {

@@ -16,8 +16,8 @@ import (
 	"github.com/iden3/go-rapidsnark/witness"
 	"github.com/pkg/errors"
 
-	dataPkg "gitlab.com/rarimo/identity/issuer/internal/data"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/zkp"
+	dataPkg "github.com/rarimo/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/service/core/zkp"
 )
 
 func (is *IdentityState) GenerateStateCommitment(

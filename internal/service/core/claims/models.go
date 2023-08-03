@@ -3,7 +3,7 @@ package claims
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
-	validationPkg "gitlab.com/rarimo/identity/issuer/internal/service/core/claims/validation"
+	validationPkg "github.com/rarimo/issuer/internal/service/core/claims/validation"
 )
 
 const (

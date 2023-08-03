@@ -4,7 +4,7 @@ import (
 	"github.com/go-chi/chi"
 	"gitlab.com/distributed_lab/ape"
 
-	"gitlab.com/rarimo/identity/issuer/internal/service/api/handlers"
+	"github.com/rarimo/issuer/internal/service/api/handlers"
 )
 
 func (s *service) router() chi.Router {

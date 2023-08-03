@@ -3,7 +3,7 @@ package pg
 import (
 	"gitlab.com/distributed_lab/kit/pgdb"
 
-	"gitlab.com/rarimo/identity/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/data"
 )
 
 var sortColumns = map[string]string{

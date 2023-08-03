@@ -1,4 +1,4 @@
-module gitlab.com/rarimo/identity/issuer
+module github.com/rarimo/issuer
 
 go 1.19
 

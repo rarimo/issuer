@@ -14,9 +14,9 @@ import (
 	"gitlab.com/distributed_lab/kit/kv"
 	"gitlab.com/distributed_lab/logan/v3"
 
-	"gitlab.com/rarimo/identity/issuer/internal/config"
-	"gitlab.com/rarimo/identity/issuer/internal/service/api"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity"
+	"github.com/rarimo/issuer/internal/config"
+	"github.com/rarimo/issuer/internal/service/api"
+	"github.com/rarimo/issuer/internal/service/core/identity"
 )
 
 func Run(args []string) bool {

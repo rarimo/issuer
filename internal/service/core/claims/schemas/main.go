@@ -13,7 +13,7 @@ import (
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/pkg/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
+	"github.com/rarimo/issuer/internal/service/core/claims"
 )
 
 func NewBuilder(ctx context.Context, schemasBaseUrl string) (*Builder, error) {

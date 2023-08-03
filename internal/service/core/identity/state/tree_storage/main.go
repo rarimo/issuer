@@ -7,8 +7,8 @@ import (
 	"gitlab.com/distributed_lab/kit/pgdb"
 	errPkg "gitlab.com/distributed_lab/logan/v3/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/data"
-	"gitlab.com/rarimo/identity/issuer/internal/data/pg"
+	"github.com/rarimo/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/data/pg"
 )
 
 // treeStorage implement merkletree.Storage

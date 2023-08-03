@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"gitlab.com/rarimo/identity/issuer/resources"
+	"github.com/rarimo/issuer/resources"
 )
 
 func NewGetIdentifier(identifier string) *resources.GetIdentifierResponse {

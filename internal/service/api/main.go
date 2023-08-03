@@ -9,8 +9,8 @@ import (
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/config"
-	issuerPkg "gitlab.com/rarimo/identity/issuer/internal/service/core/issuer"
+	"github.com/rarimo/issuer/internal/config"
+	issuerPkg "github.com/rarimo/issuer/internal/service/core/issuer"
 )
 
 type service struct {

@@ -6,7 +6,7 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/pkg/errors"
 
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
+	"github.com/rarimo/issuer/internal/service/core/claims"
 )
 
 type ClaimsQ interface {

@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/running"
 
-	"gitlab.com/rarimo/identity/issuer/internal/data"
-	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
+	"github.com/rarimo/issuer/internal/data"
+	"github.com/rarimo/issuer/internal/service/core/identity/state"
 )
 
 func (p *publisher) Run(ctx context.Context) {
