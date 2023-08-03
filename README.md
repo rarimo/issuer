@@ -149,7 +149,7 @@ sequenceDiagram
 
     activate User
     
-    User->>KYC Service: Provide an Auth ZKP <br> of the Identity owning and KYC data
+    User->>KYC Service: Provide Auth ZKP and KYC data
     activate KYC Service
     KYC Service->>KYC Service: Verify ZKP
     KYC Service->>Issuer: Send request for <br> claim issuance
