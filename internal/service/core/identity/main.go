@@ -70,7 +70,7 @@ func (iden *Identity) Init(ctx context.Context) error {
 
 	if genesisStateRaw == nil || authClaim == nil {
 		iden.log.Info("Identity not found")
-		err = iden.generateNewIdentity(ctx)
+		err = iden.generateNewIdentity()
 		if err != nil {
 			return errors.Wrap(err, "failed to generate new Identity")
 		}

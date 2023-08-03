@@ -39,12 +39,12 @@ func (isr *issuer) CreateClaimOffer(
 		return nil, ErrClaimRetrieverIsNotClaimOwner
 	}
 
-	claimOffer := claims.NewClaimOffer(
+	claimOffer := NewClaimOffer(
 		fmt.Sprint(isr.baseURL, ClaimIssueCallBackPath), isr.Identifier, userDID, claim,
 	)
 
 	err = isr.claimsOffersQ.Insert(
-		claims.ClaimOfferToRaw(claimOffer, time.Now(), isr.Identifier.ID, userDID.ID),
+		ClaimOfferToRaw(claimOffer, time.Now(), isr.Identifier.ID, userDID.ID),
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to insert claim offer to db")
@@ -123,7 +123,7 @@ func (isr *issuer) OfferCallback(
 		return nil, errors.Wrap(err, "failed to generate mtp")
 	}
 
-	cred, err := claims.ClaimModelToW3Credential(claim)
+	cred, err := ClaimModelToW3Credential(claim)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create iden3 credential from claim model")
 	}

@@ -67,7 +67,7 @@ func (b *Builder) CreateCoreClaim(
 	parseOptions := &processor.CoreClaimOptions{
 		RevNonce:        revNonce,
 		Updatable:       false,
-		SubjectPosition: claims.SubjectPositionIndex,
+		SubjectPosition: utils.SubjectPositionIndex,
 		MerklizedRootPosition: claims.DefineMerklizedRootPosition(
 			b.CachedSchemas[schemaType.ToRaw()].Body.Metadata,
 			utils.MerklizedRootPositionValue,

@@ -2,29 +2,15 @@ package claims
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"gitlab.com/distributed_lab/logan/v3/errors"
 
 	validationPkg "gitlab.com/rarimo/identity/issuer/internal/service/core/claims/validation"
 )
 
 const (
-	// SubjectPositionIndex save subject in index part of claim. By the default.
-	SubjectPositionIndex = "index"
-	// SubjectPositionValue save subject in value part of claim.
-	SubjectPositionValue = "value"
-
-	BabyJubSignatureType = "BJJSignature2021"
-
-	CorrectSchemaHashBytesLength = 16
-	ExpirationWithoutExpiration  = 0
-	CredentialStatusCheckURL     = "/integrations/issuer/v1/public/claims/revocations/check/"
-	MTPUpdateURL                 = "/integrations/issuer/v1/public/claims/mtp-update/"
+	CredentialStatusCheckURL = "/integrations/issuer/v1/public/claims/revocations/check/"
+	MTPUpdateURL             = "/integrations/issuer/v1/public/claims/mtp-update/"
 
 	AuthBJJCredentialClaimType = "AuthBJJCredential" //nolint
-)
-
-var (
-	ErrIDPositionIsNotSpecified = errors.New("id position is not specified")
 )
 
 type ClaimSchemaType string

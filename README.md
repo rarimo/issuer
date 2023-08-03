@@ -39,8 +39,8 @@ h_v = H(v_0, v_1, v_2, v_3)
 h_t = H(h_i, h_v)
 
 Index:
- i_0: [ 128 bits ] claim schema
-      [ 32 bits ] header flags
+ i_0: [ 128  bits ] claim schema
+      [ 32 bits ] option flags
           [3] Subject:
             000: A.1 Self
             001: invalid
@@ -50,7 +50,11 @@ Index:
             101: B.v Object Value
           [1] Expiration: bool
           [1] Updatable: bool
-          [27] 0
+          [3] Merklized: data is merklized root is stored in the:
+            000: none
+            001: C.i Root Index (root located in i_2)
+            010: C.v Root Value (root located in v_2)
+          [24] 0
       [ 32 bits ] version (optional?)
       [ 61 bits ] 0 - reserved for future use
  i_1: [ 248 bits] identity (case b) (optional)
@@ -59,10 +63,10 @@ Index:
  i_3: [ 253 bits] 0
 Value:
  v_0: [ 64 bits ]  revocation nonce
-         [ 64 bits ]  expiration date (optional)
-         [ 125 bits] 0 - reserved
+      [ 64 bits ]  expiration date (optional)
+      [ 125 bits] 0 - reserved
  v_1: [ 248 bits] identity (case c) (optional)
-        [  5 bits ] 0
+      [  5 bits ] 0
  v_2: [ 253 bits] 0
  v_3: [ 253 bits] 0
 ```
@@ -92,9 +96,7 @@ Value:
 
 </details>
 
-For describing the claim we use [JSON-ld schemas](https://json-ld.org/). It is provided an easy way to tie the claim, 
-it's fields to descriptions.
-
+For describing the claim we use JSON and [JSON-ld schemas](https://json-ld.org/).
 <details>
 <summary>Auth claim schema</summary>
 
@@ -137,7 +139,7 @@ For the claim issuance included the following steps:
 2) Issuer create a claim by schema with user information that already verified by the KYC service.
 3) User retrieves the claim.
 
-Example of the claim issuance flow:
+Example of the flow:
 ``` mermaid
 
 sequenceDiagram
@@ -147,9 +149,9 @@ sequenceDiagram
 
     activate User
     
-    User->>KYC Service: Provide a claim data with <br> ZKP of the Identity owning
+    User->>KYC Service: Provide an Auth ZKP <br> of the Identity owning and KYC data
     activate KYC Service
-    KYC Service->>KYC Service: Verify the claim data
+    KYC Service->>KYC Service: Verify ZKP
     KYC Service->>Issuer: Send request for <br> claim issuance
     deactivate KYC Service
     
@@ -159,10 +161,10 @@ sequenceDiagram
     Issuer->>Issuer: Publish on-chain <br> the updated state
     deactivate Issuer
     
-    User->>Issuer: Request the claim with <br> ZKP of the Identity owning
+    User->>Issuer: Request the claim with Auth ZKP
     activate Issuer
     Issuer->>Issuer: Create MTP and Sign proof <br> of the claim storing in the <br> Issuer's Claims merkle Tree
-    Issuer->>User: Send the claim with <br> ZKP of the Issuer's Identity <br> owning, MTP and Sign proof
+    Issuer->>User: Send the claim with <br> ZKP of the Issuer's Identity <br> owning, MTP and Sign proofs
     
     deactivate Issuer
    
@@ -278,18 +280,6 @@ that will create open-api documentation in `web_deploy` folder.
 
 To generate resources for Go models run `./generate.sh` script in root folder.
 use `./generate.sh --help` to see all available options.
-
-
-## Running from docker 
-  
-Make sure that docker installed.
-
-use `docker run ` with `-p 8080:80` to expose port 80 to 8080
-
-  ```
-  docker build -t gitlab.com/rarimo/identity/issuer .
-  docker run -e KV_VIPER_FILE=/config.yaml gitlab.com/rarimo/identity/issuer
-  ```
 
 ## Running from Source
 

@@ -18,7 +18,7 @@ func (iden *Identity) GenerateIncMTProof(
 	claim *core.Claim,
 	updateURL string, // contains URL for MTProof updating
 	issuerData verifiable.IssuerData,
-) (*data.Iden3SparseMerkleTreeProofWithID, error) {
+) (*claims.Iden3SparseMerkleTreeProof, error) {
 	if claim == nil {
 		return nil, errors.New("failed to generate proof, claim is nil")
 	}
@@ -41,14 +41,12 @@ func (iden *Identity) GenerateIncMTProof(
 		return nil, errors.Wrap(err, "failed to parse core claim hex")
 	}
 
-	return &data.Iden3SparseMerkleTreeProofWithID{
-		Iden3SparseMerkleTreeProof: verifiable.Iden3SparseMerkleTreeProof{
-			Type:       verifiable.Iden3SparseMerkleTreeProofType,
-			MTP:        inclusionProof,
-			IssuerData: issuerData,
-			CoreClaim:  coreClaimHex,
-		},
-		ID: updateURL,
+	return &claims.Iden3SparseMerkleTreeProof{
+		Type:       verifiable.Iden3SparseMerkleTreeProofType,
+		MTP:        inclusionProof,
+		IssuerData: issuerData,
+		CoreClaim:  coreClaimHex,
+		ID:         updateURL,
 	}, nil
 }
 
@@ -56,7 +54,8 @@ func (iden *Identity) GenerateIncMTProof(
 func (iden *Identity) GenerateIncSigProof(
 	claim *core.Claim,
 	issuerData verifiable.IssuerData,
-) (*verifiable.BJJSignatureProof2021, error) {
+	issuerProofUpdateURL string,
+) (*claims.BJJSignatureProof2021, error) {
 	signature, err := claims.SignClaimEntry(claim, iden.Sign)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to sign core claim")
@@ -67,11 +66,12 @@ func (iden *Identity) GenerateIncSigProof(
 		return nil, errors.Wrap(err, "failed to get hex from auth core claim")
 	}
 
-	return &verifiable.BJJSignatureProof2021{
-		Type:       verifiable.BJJSignatureProofType,
-		Signature:  signature,
-		CoreClaim:  coreClaimHex,
-		IssuerData: issuerData,
+	return &claims.BJJSignatureProof2021{
+		Type:                 verifiable.BJJSignatureProofType,
+		Signature:            signature,
+		CoreClaim:            coreClaimHex,
+		IssuerData:           issuerData,
+		IssuerProofUpdateURL: issuerProofUpdateURL,
 	}, nil
 }
 

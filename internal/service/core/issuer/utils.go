@@ -28,6 +28,7 @@ func (isr *issuer) generateProofs(ctx context.Context, claim *data.Claim) (err e
 	claim.SignatureProof, err = isr.GenerateIncSigProof(
 		claim.CoreClaim.Claim,
 		*issuerData,
+		fmt.Sprint(isr.baseURL, claims.MTPUpdateURL, isr.AuthClaim.ID),
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to get signature proof")
@@ -69,12 +70,4 @@ func (isr *issuer) checkClaimRetriever(claim *data.Claim, claimRetriever string,
 
 func strptr(str string) *string {
 	return &str
-}
-
-func cutClaimIDFromCredentialID(credentialID string) (string, error) {
-	if len(credentialID) < uuidStringSize {
-		return "", ErrInvalidCredentialID
-	}
-
-	return credentialID[len(credentialID)-uuidStringSize:], nil
 }

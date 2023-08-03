@@ -4,8 +4,9 @@ import (
 	"database/sql/driver"
 
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/pkg/errors"
+
+	"gitlab.com/rarimo/identity/issuer/internal/service/core/claims"
 )
 
 type ClaimsQ interface {
@@ -26,8 +27,8 @@ type Claim struct {
 	CoreClaim  *CoreClaim `db:"core_claim"  structs:"-"`
 	UserID     string     `db:"user_id"     structs:"user_id"`
 
-	MTP            *Iden3SparseMerkleTreeProofWithID `db:"-" structs:"-"`
-	SignatureProof *verifiable.BJJSignatureProof2021 `db:"-" structs:"-"`
+	MTP            *claims.Iden3SparseMerkleTreeProof `db:"-" structs:"-"`
+	SignatureProof *claims.BJJSignatureProof2021      `db:"-" structs:"-"`
 }
 
 type CoreClaim struct {
@@ -63,10 +64,4 @@ func (c *CoreClaim) Scan(src interface{}) error {
 
 	*c = parsed
 	return nil
-}
-
-type Iden3SparseMerkleTreeProofWithID struct {
-	verifiable.Iden3SparseMerkleTreeProof
-
-	ID string `json:"id"`
 }

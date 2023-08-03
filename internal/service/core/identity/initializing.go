@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	core "github.com/iden3/go-iden3-core"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
@@ -12,7 +13,7 @@ import (
 	"gitlab.com/rarimo/identity/issuer/internal/service/core/identity/state"
 )
 
-func (iden *Identity) generateNewIdentity(ctx context.Context) error {
+func (iden *Identity) generateNewIdentity() error {
 	iden.log.Info("Generating the new Identity")
 
 	if iden.babyJubJubPrivateKey == nil {
@@ -98,6 +99,7 @@ func (iden *Identity) saveAuthClaimModel(coreAuthClaim *core.Claim) error {
 	}
 
 	authClaim := &data.Claim{
+		ID:         uuid.NewString(),
 		CoreClaim:  data.NewCoreClaim(coreAuthClaim),
 		ClaimType:  claims.AuthBJJCredentialClaimType,
 		Credential: authClaimData,
